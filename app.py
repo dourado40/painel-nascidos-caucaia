@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Painel de Nascidos Vivos - Observatório da Primeira Infância de Caucaia
-Versão final com botão PDF executivo no topo
+Versão final - esconde barra do Streamlit
 """
 
 import streamlit as st
@@ -32,6 +32,42 @@ st.set_page_config(
     layout="wide"
 )
 
+# ==========================================
+# ESCONDER BARRA DO STREAMLIT
+# ==========================================
+st.markdown("""
+<style>
+    /* Esconde a barra superior do Streamlit */
+    header[data-testid="stHeader"] {
+        display: none !important;
+    }
+    /* Esconde o menu hamburguer */
+    #MainMenu {
+        display: none !important;
+    }
+    /* Esconde o rodape "Made with Streamlit" */
+    footer {
+        display: none !important;
+    }
+    /* Esconde o botao "Deploy" */
+    .stDeployButton {
+        display: none !important;
+    }
+    /* Esconde a barra de ferramentas do app */
+    div[data-testid="stToolbar"] {
+        display: none !important;
+    }
+    /* Remove espaco em branco do topo */
+    .block-container {
+        padding-top: 1rem !important;
+    }
+    /* Esconde o link de ancora */
+    .stApp a.anchor-link {
+        display: none !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 # Paleta
 AZUL = "#1F3A6E"
 AZUL_ESCURO = "#16305A"
@@ -45,10 +81,10 @@ BRANCO = "#FFFFFF"
 
 
 # ==========================================
-# FUNÇÕES AUXILIARES
+# FUNCOES AUXILIARES
 # ==========================================
 def fmt(n):
-    """Formata número no padrão brasileiro: 1.234.567"""
+    """Formata numero no padrao brasileiro: 1.234.567"""
     try:
         return f"{int(n):,}".replace(",", ".")
     except:
@@ -56,7 +92,7 @@ def fmt(n):
 
 
 def kpi_card(titulo, valor, subtitulo=None, cor=AZUL, cor_texto=None):
-    """Card de KPI com formatação brasileira"""
+    """Card de KPI com formatacao brasileira"""
     cor_texto = cor_texto or cor
     sub_html = f'<div style="font-size:12px;color:#888;margin-top:8px;">{subtitulo}</div>' if subtitulo else ''
     st.markdown(f"""
@@ -81,7 +117,7 @@ def kpi_destaque(titulo, valor, subtitulo=None):
 
 
 # ==========================================
-# CSS
+# CSS DO CONTEUDO
 # ==========================================
 st.markdown(f"""
 <style>
@@ -124,7 +160,6 @@ st.markdown(f"""
         color: {GRAFITE};
         margin: 16px 0;
     }}
-    /* Botão PDF no topo */
     div[data-testid="stDownloadButton"] button {{
         background-color: {AMARELO};
         color: {AZUL};
@@ -161,7 +196,7 @@ def carregar_dados():
 dados = carregar_dados()
 
 # ==========================================
-# DADOS HISTÓRICOS
+# DADOS HISTORICOS
 # ==========================================
 por_ano_historico = {k: v for k, v in dados['por_ano'].items() if k != '2026'}
 anos_hist = sorted(por_ano_historico.keys())
@@ -195,7 +230,7 @@ perc_m = (masc / total_sexo) * 100 if total_sexo > 0 else 0
 perc_f = (fem / total_sexo) * 100 if total_sexo > 0 else 0
 
 # ==========================================
-# PROJEÇÃO
+# PROJECAO
 # ==========================================
 anos_numericos = np.array([int(a) for a in anos_hist])
 valores_numericos = np.array(valores_hist)
@@ -217,10 +252,10 @@ media_projetada = int(total_2026_2030 / 5)
 
 
 # ==========================================
-# FUNÇÃO: GERAR RELATÓRIO PDF EXECUTIVO
+# FUNCAO: GERAR RELATORIO PDF EXECUTIVO
 # ==========================================
 def gerar_relatorio_pdf():
-    """Gera relatório PDF com análise executiva para o prefeito"""
+    """Gera relatorio PDF com analise executiva"""
     buffer = BytesIO()
     doc = SimpleDocTemplate(
         buffer,
@@ -229,8 +264,8 @@ def gerar_relatorio_pdf():
         leftMargin=2*cm,
         topMargin=2*cm,
         bottomMargin=2*cm,
-        title="Relatório de Nascidos Vivos - Caucaia",
-        author="Observatório da Primeira Infância de Caucaia"
+        title="Relatorio de Nascidos Vivos - Caucaia",
+        author="Observatorio da Primeira Infancia de Caucaia"
     )
 
     styles = getSampleStyleSheet()
@@ -263,40 +298,40 @@ def gerar_relatorio_pdf():
     # CAPA
     story.append(Paragraph("PREFEITURA MUNICIPAL DE CAUCAIA", titulo))
     story.append(Paragraph(
-        "Observatório da Primeira Infância",
+        "Observatorio da Primeira Infancia",
         ParagraphStyle('Sub', parent=titulo, fontSize=14, spaceAfter=8)
     ))
     story.append(Spacer(1, 0.5*cm))
     story.append(Paragraph(
-        "RELATÓRIO DE NASCIDOS VIVOS",
+        "RELATORIO DE NASCIDOS VIVOS",
         ParagraphStyle('TitRel', parent=titulo, fontSize=18, spaceAfter=12)
     ))
     story.append(Paragraph(
-        f"Período de análise: {anos_hist[0]} a {anos_hist[-1]}",
+        f"Periodo de analise: {anos_hist[0]} a {anos_hist[-1]}",
         ParagraphStyle('Periodo', parent=corpo, alignment=TA_CENTER, fontSize=12)
     ))
     story.append(Paragraph(
-        f"Gerado em: {datetime.now().strftime('%d/%m/%Y às %H:%M')}",
+        f"Gerado em: {datetime.now().strftime('%d/%m/%Y as %H:%M')}",
         ParagraphStyle('Data', parent=corpo, alignment=TA_CENTER, fontSize=10, textColor=colors.gray)
     ))
     story.append(Spacer(1, 1*cm))
 
-    # 1. SUMÁRIO EXECUTIVO
-    story.append(Paragraph("1. SUMÁRIO EXECUTIVO", subtitulo))
-    tendencia_txt = "crescimento" if coef[0] > 0 else "redução"
+    # 1. SUMARIO EXECUTIVO
+    story.append(Paragraph("1. SUMARIO EXECUTIVO", subtitulo))
+    tendencia_txt = "crescimento" if coef[0] > 0 else "reducao"
     texto_executivo = f"""
-    Este relatório apresenta a análise dos nascidos vivos no município de Caucaia 
-    no período de <b>{anos_hist[0]} a {anos_hist[-1]}</b>, totalizando 
+    Este relatorio apresenta a analise dos nascidos vivos no municipio de Caucaia 
+    no periodo de <b>{anos_hist[0]} a {anos_hist[-1]}</b>, totalizando 
     <b>{fmt(dados['total_nascimentos'])} nascimentos</b> registrados no SINASC.
     <br/><br/>
-    A média anual de nascimentos no período foi de <b>{fmt(media_anual)} crianças</b>. 
-    A análise de tendência identificou um cenário de <b>{tendencia_txt}</b> de 
-    aproximadamente <b>{abs(coef[0]):.0f} nascimentos por ano</b>, com projeção de 
-    <b>{fmt(total_2026_2030)} nascimentos</b> para o quinquênio 2026-2030.
+    A media anual de nascimentos no periodo foi de <b>{fmt(media_anual)} criancas</b>. 
+    A analise de tendencia identificou um cenario de <b>{tendencia_txt}</b> de 
+    aproximadamente <b>{abs(coef[0]):.0f} nascimentos por ano</b>, com projecao de 
+    <b>{fmt(total_2026_2030)} nascimentos</b> para o quinquenio 2026-2030.
     <br/><br/>
-    Os dados aqui apresentados servem como base técnica para o planejamento de 
-    políticas públicas voltadas à Primeira Infância, orientando a alocação de 
-    recursos nas áreas de saúde materno-infantil, educação infantil, assistência 
+    Os dados aqui apresentados servem como base tecnica para o planejamento de 
+    politicas publicas voltadas a Primeira Infancia, orientando a alocacao de 
+    recursos nas areas de saude materno-infantil, educacao infantil, assistencia 
     social e infraestrutura urbana.
     """
     story.append(Paragraph(texto_executivo, corpo))
@@ -308,15 +343,15 @@ def gerar_relatorio_pdf():
     dados_tabela = [
         ['Indicador', 'Valor'],
         ['Total de Nascidos Vivos', fmt(dados['total_nascimentos'])],
-        ['Média Anual de Nascimentos', fmt(media_anual)],
-        ['Período Analisado', f'{anos_hist[0]} a {anos_hist[-1]}'],
-        ['Anos de Série Histórica', f'{len(anos_hist)} anos'],
-        ['Peso Médio ao Nascer', f"{dados['estatisticas']['peso_medio_g']:.0f} g"],
-        ['Peso Mínimo Registrado', f"{dados['estatisticas']['peso_min_g']} g"],
-        ['Peso Máximo Registrado', f"{dados['estatisticas']['peso_max_g']} g"],
-        ['Idade Média das Mães', f"{dados['estatisticas']['idade_media_mae']} anos"],
-        ['Idade Mínima das Mães', f"{dados['estatisticas']['idade_min_mae']} anos"],
-        ['Idade Máxima das Mães', f"{dados['estatisticas']['idade_max_mae']} anos"],
+        ['Media Anual de Nascimentos', fmt(media_anual)],
+        ['Periodo Analisado', f'{anos_hist[0]} a {anos_hist[-1]}'],
+        ['Anos de Serie Historica', f'{len(anos_hist)} anos'],
+        ['Peso Medio ao Nascer', f"{dados['estatisticas']['peso_medio_g']:.0f} g"],
+        ['Peso Minimo Registrado', f"{dados['estatisticas']['peso_min_g']} g"],
+        ['Peso Maximo Registrado', f"{dados['estatisticas']['peso_max_g']} g"],
+        ['Idade Media das Maes', f"{dados['estatisticas']['idade_media_mae']} anos"],
+        ['Idade Minima das Maes', f"{dados['estatisticas']['idade_min_mae']} anos"],
+        ['Idade Maxima das Maes', f"{dados['estatisticas']['idade_max_mae']} anos"],
     ]
 
     tabela = Table(dados_tabela, colWidths=[10*cm, 6*cm])
@@ -339,28 +374,28 @@ def gerar_relatorio_pdf():
     ]))
     story.append(tabela)
 
-    # 3. PROJEÇÃO
+    # 3. PROJECAO
     story.append(PageBreak())
-    story.append(Paragraph("3. PROJEÇÃO PARA 2026-2030", subtitulo))
+    story.append(Paragraph("3. PROJECAO PARA 2026-2030", subtitulo))
 
     texto_projecao = f"""
-    Com base na análise de regressão linear dos dados históricos, projeta-se 
-    <b>{fmt(total_2026_2030)} nascimentos</b> no quinquênio 2026-2030, com 
-    média anual de <b>{fmt(media_projetada)} nascimentos</b>.
+    Com base na analise de regressao linear dos dados historicos, projeta-se 
+    <b>{fmt(total_2026_2030)} nascimentos</b> no quinquenio 2026-2030, com 
+    media anual de <b>{fmt(media_projetada)} nascimentos</b>.
     <br/><br/>
-    O cenário projetado aponta para uma <b>{tendencia_txt}</b> de aproximadamente 
-    <b>{abs(coef[0]):.0f} nascimentos por ano</b>. Recomenda-se que o município 
-    considere esse cenário no planejamento das políticas públicas de Primeira 
-    Infância, especialmente no dimensionamento de:
+    O cenario projetado aponta para uma <b>{tendencia_txt}</b> de aproximadamente 
+    <b>{abs(coef[0]):.0f} nascimentos por ano</b>. Recomenda-se que o municipio 
+    considere esse cenario no planejamento das politicas publicas de Primeira 
+    Infancia.
     """
     story.append(Paragraph(texto_projecao, corpo))
 
     recomendacoes_lista = [
-        "Vagas em creches e pré-escolas (rede municipal de educação infantil)",
-        "Equipes de saúde da família e agentes comunitários",
-        "Programas de assistência social e transferência de renda",
-        "Infraestrutura urbana (parques, praças, mobilidade)",
-        "Programas de apoio à maternidade e primeira infância",
+        "Vagas em creches e pre-escolas (rede municipal de educacao infantil)",
+        "Equipes de saude da familia e agentes comunitarios",
+        "Programas de assistencia social e transferencia de renda",
+        "Infraestrutura urbana (parques, pracas, mobilidade)",
+        "Programas de apoio a maternidade e primeira infancia",
     ]
     for rec in recomendacoes_lista:
         story.append(Paragraph(f"• {rec}", ParagraphStyle(
@@ -368,7 +403,7 @@ def gerar_relatorio_pdf():
         )))
 
     story.append(Spacer(1, 0.5*cm))
-    story.append(Paragraph("Detalhamento da Projeção", destaque))
+    story.append(Paragraph("Detalhamento da Projecao", destaque))
 
     dados_proj = [['Ano', 'Pessimista', 'Realista', 'Otimista']]
     for i, ano in enumerate(anos_projecao):
@@ -396,16 +431,16 @@ def gerar_relatorio_pdf():
 
     story.append(Spacer(1, 0.3*cm))
     story.append(Paragraph(
-        "<i>Nota: os cenários otimista e pessimista representam o intervalo de "
-        "confiança de 95% da regressão linear.</i>",
+        "<i>Nota: os cenarios otimista e pessimista representam o intervalo de "
+        "confianca de 95% da regressao linear.</i>",
         ParagraphStyle('Nota', parent=corpo, fontSize=9, textColor=colors.gray)
     ))
 
-    # 4. SAÚDE MATERNO-INFANTIL
+    # 4. SAUDE MATERNO-INFANTIL
     story.append(PageBreak())
-    story.append(Paragraph("4. ANÁLISE DE SAÚDE MATERNO-INFANTIL", subtitulo))
+    story.append(Paragraph("4. ANALISE DE SAUDE MATERNO-INFANTIL", subtitulo))
 
-    story.append(Paragraph("Cobertura de Pré-Natal", destaque))
+    story.append(Paragraph("Cobertura de Pre-Natal", destaque))
     total_prenatal = sum(dados['por_prenatal'].values())
     pren_adequado = dados['por_prenatal'].get('7 e mais', 0)
     pren_nenhum = dados['por_prenatal'].get('Nenhuma', 0)
@@ -413,20 +448,20 @@ def gerar_relatorio_pdf():
     perc_nenhum = (pren_nenhum / total_prenatal) * 100 if total_prenatal > 0 else 0
 
     texto_prenatal = f"""
-    Das <b>{fmt(total_prenatal)}</b> mães registradas, <b>{fmt(pren_adequado)}</b> 
-    (<b>{perc_adequado:.1f}%</b>) realizaram <b>7 ou mais consultas</b> de pré-natal, 
-    considerado o padrão adequado pela OMS.
+    Das <b>{fmt(total_prenatal)}</b> maes registradas, <b>{fmt(pren_adequado)}</b> 
+    (<b>{perc_adequado:.1f}%</b>) realizaram <b>7 ou mais consultas</b> de pre-natal, 
+    considerado o padrao adequado pela OMS.
     <br/><br/>
-    <b>Atenção:</b> <b>{fmt(pren_nenhum)}</b> mães (<b>{perc_nenhum:.1f}%</b>) 
-    <b>não realizaram nenhuma consulta</b> de pré-natal. Este indicador merece 
-    ação prioritária da gestão.
+    <b>Atencao:</b> <b>{fmt(pren_nenhum)}</b> maes (<b>{perc_nenhum:.1f}%</b>) 
+    <b>nao realizaram nenhuma consulta</b> de pre-natal. Este indicador merece 
+    acao prioritaria da gestao.
     """
     story.append(Paragraph(texto_prenatal, corpo))
     story.append(Spacer(1, 0.3*cm))
 
     story.append(Paragraph("Tipo de Parto", destaque))
     total_parto = sum(dados['por_parto'].values())
-    cesariana = dados['por_parto'].get('Cesário', 0) + dados['por_parto'].get('Cesáreo', 0)
+    cesariana = dados['por_parto'].get('Cesario', 0) + dados['por_parto'].get('Cesareo', 0)
     vaginal = dados['por_parto'].get('Vaginal', 0)
     perc_ces = (cesariana / total_parto) * 100 if total_parto > 0 else 0
     perc_vag = (vaginal / total_parto) * 100 if total_parto > 0 else 0
@@ -435,9 +470,8 @@ def gerar_relatorio_pdf():
     Do total de partos, <b>{fmt(cesariana)}</b> (<b>{perc_ces:.1f}%</b>) foram 
     cesarianas e <b>{fmt(vaginal)}</b> (<b>{perc_vag:.1f}%</b>) foram partos vaginais.
     <br/><br/>
-    <b>Alerta técnico:</b> a OMS recomenda taxa de cesarianas entre 10% e 15%. 
-    A taxa observada de <b>{perc_ces:.1f}%</b> está acima do recomendado, sugerindo 
-    necessidade de revisão das práticas obstétricas.
+    <b>Alerta tecnico:</b> a OMS recomenda taxa de cesarianas entre 10% e 15%. 
+    A taxa observada de <b>{perc_ces:.1f}%</b> esta acima do recomendado.
     """
     story.append(Paragraph(texto_parto, corpo))
     story.append(Spacer(1, 0.3*cm))
@@ -450,46 +484,46 @@ def gerar_relatorio_pdf():
     perc_baixo = (baixo_peso / total_peso) * 100 if total_peso > 0 else 0
 
     texto_peso = f"""
-    A média de peso ao nascer é de <b>{dados['estatisticas']['peso_medio_g']:.0f} g</b>, 
+    A media de peso ao nascer e de <b>{dados['estatisticas']['peso_medio_g']:.0f} g</b>, 
     considerado adequado.
     <br/><br/>
-    Foram registrados <b>{fmt(baixo_peso)}</b> bebês com <b>peso inferior a 2.500 g</b> 
+    Foram registrados <b>{fmt(baixo_peso)}</b> bebes com <b>peso inferior a 2.500 g</b> 
     (<b>{perc_baixo:.1f}%</b> do total), indicando a necessidade de acompanhamento 
-    especializado em saúde neonatal.
+    especializado em saude neonatal.
     """
     story.append(Paragraph(texto_peso, corpo))
 
-    # 5. RECOMENDAÇÕES
+    # 5. RECOMENDACOES
     story.append(PageBreak())
-    story.append(Paragraph("5. RECOMENDAÇÕES PARA A GESTÃO MUNICIPAL", subtitulo))
+    story.append(Paragraph("5. RECOMENDACOES PARA A GESTAO MUNICIPAL", subtitulo))
 
     texto_rec = """
-    Com base na análise técnica dos dados de nascidos vivos no município de Caucaia, 
-    a equipe do Observatório da Primeira Infância apresenta as seguintes 
-    recomendações para consideração da gestão municipal:
+    Com base na analise tecnica dos dados de nascidos vivos no municipio de Caucaia, 
+    a equipe do Observatorio da Primeira Infancia apresenta as seguintes 
+    recomendacoes para consideracao da gestao municipal:
     """
     story.append(Paragraph(texto_rec, corpo))
     story.append(Spacer(1, 0.3*cm))
 
     recomendacoes_finais = [
-        ("Saúde Materno-Infantil",
-         "Ampliar a cobertura de pré-natal adequado, com meta de reduzir os casos de mães "
-         "sem nenhuma consulta. Reforçar busca ativa de gestantes nos territórios."),
-        ("Redução de Cesarianas Desnecessárias",
-         "Implementar protocolos de classificação de risco obstétrico e incentivar o parto "
-         "humanizado, alinhando-se às diretrizes da OMS."),
-        ("Educação Infantil",
-         "Dimensionar a oferta de vagas em creches e pré-escolas para os próximos 5 anos, "
-         "considerando a projeção de nascimentos."),
-        ("Primeira Infância e Assistência Social",
-         "Ampliar a cobertura do Programa Criança Feliz e do SCFV nas áreas com maior "
+        ("Saude Materno-Infantil",
+         "Ampliar a cobertura de pre-natal adequado, com meta de reduzir os casos de maes "
+         "sem nenhuma consulta. Reforcar busca ativa de gestantes nos territorios."),
+        ("Reducao de Cesarianas Desnecessarias",
+         "Implementar protocolos de classificacao de risco obstetrico e incentivar o parto "
+         "humanizado, alinhando-se as diretrizes da OMS."),
+        ("Educacao Infantil",
+         "Dimensionar a oferta de vagas em creches e pre-escolas para os proximos 5 anos, "
+         "considerando a projecao de nascimentos."),
+        ("Primeira Infancia e Assistencia Social",
+         "Ampliar a cobertura do Programa Crianca Feliz e do SCFV nas areas com maior "
          "volume de nascimentos."),
         ("Infraestrutura Urbana",
-         "Priorizar investimentos em espaços públicos amigáveis à Primeira Infância nas "
-         "regiões com maior concentração de nascimentos."),
-        ("Monitoramento Contínuo",
-         "Manter a atualização anual deste painel, permitindo o acompanhamento das "
-         "políticas públicas e ajustes no planejamento."),
+         "Priorizar investimentos em espacos publicos amigaveis a Primeira Infancia nas "
+         "regioes com maior concentracao de nascimentos."),
+        ("Monitoramento Continuo",
+         "Manter a atualizacao anual deste painel, permitindo o acompanhamento das "
+         "politicas publicas e ajustes no planejamento."),
     ]
 
     for titulo_rec, texto_rec_item in recomendacoes_finais:
@@ -504,17 +538,17 @@ def gerar_relatorio_pdf():
         'Linha', parent=corpo, alignment=TA_CENTER
     )))
     story.append(Paragraph(
-        "<b>Observatório da Primeira Infância de Caucaia</b>",
+        "<b>Observatorio da Primeira Infancia de Caucaia</b>",
         ParagraphStyle('Ass', parent=corpo, alignment=TA_CENTER, fontSize=12, textColor=cor_azul)
     ))
     story.append(Paragraph(
-        "Prefeitura Municipal de Caucaia · Secretaria Municipal de Saúde",
+        "Prefeitura Municipal de Caucaia - Secretaria Municipal de Saude",
         ParagraphStyle('Ass2', parent=corpo, alignment=TA_CENTER, fontSize=10, textColor=colors.gray)
     ))
     story.append(Spacer(1, 0.3*cm))
     story.append(Paragraph(
-        f"<b>Fonte:</b> SINASC — Sistema de Informação sobre Nascidos Vivos<br/>"
-        f"<b>Gerado em:</b> {datetime.now().strftime('%d/%m/%Y às %H:%M')}",
+        f"<b>Fonte:</b> SINASC - Sistema de Informacao sobre Nascidos Vivos<br/>"
+        f"<b>Gerado em:</b> {datetime.now().strftime('%d/%m/%Y as %H:%M')}",
         ParagraphStyle('Fonte', parent=corpo, alignment=TA_CENTER, fontSize=9, textColor=colors.gray)
     ))
 
@@ -524,7 +558,7 @@ def gerar_relatorio_pdf():
 
 
 # ==========================================
-# CABEÇALHO + BOTÃO PDF NO TOPO
+# CABECALHO + BOTAO PDF
 # ==========================================
 periodo_txt = f"{anos_hist[0]} a {anos_hist[-1]}"
 
@@ -533,8 +567,8 @@ col_header, col_btn = st.columns([3, 1])
 with col_header:
     st.markdown(f"""
     <div class="header-inst">
-        <h1>Painel de Nascidos Vivos — Caucaia</h1>
-        <p>Observatório da Primeira Infância · Período histórico: {periodo_txt} · Fonte: SINASC</p>
+        <h1>Painel de Nascidos Vivos - Caucaia</h1>
+        <p>Observatorio da Primeira Infancia - Periodo historico: {periodo_txt} - Fonte: SINASC</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -542,7 +576,7 @@ with col_btn:
     st.markdown("<br>", unsafe_allow_html=True)
     pdf_bytes = gerar_relatorio_pdf()
     st.download_button(
-        label="📥 Baixar Relatório PDF",
+        label="Baixar Relatorio PDF",
         data=pdf_bytes,
         file_name=f"relatorio_executivo_caucaia_{datetime.now().strftime('%Y%m%d')}.pdf",
         mime="application/pdf",
@@ -558,36 +592,36 @@ col_principal, col_espaco, col_kpi1, col_kpi2, col_kpi3 = st.columns([2, 0.3, 1,
 
 with col_principal:
     kpi_destaque(
-        "Total de Nascidos Vivos no Período Histórico",
+        "Total de Nascidos Vivos no Periodo Historico",
         fmt(dados['total_nascimentos']),
-        f"Média anual: {fmt(media_anual)} nascimentos"
+        f"Media anual: {fmt(media_anual)} nascimentos"
     )
 
 with col_kpi1:
     sinal = "+" if var_ano >= 0 else "-"
     kpi_card(
-        f"Variação {ultimo} vs {penultimo}",
+        f"Variacao {ultimo} vs {penultimo}",
         f"{sinal}{fmt(abs(var_ano))}",
         f"{pct_var:+.1f}%",
         cor=VERDE if var_ano >= 0 else CORAL
     )
 
 with col_kpi2:
-    kpi_card("Peso Médio ao Nascer", f"{dados['estatisticas']['peso_medio_g']:.0f} g")
+    kpi_card("Peso Medio ao Nascer", f"{dados['estatisticas']['peso_medio_g']:.0f} g")
 
 with col_kpi3:
-    kpi_card("Idade Média das Mães", f"{dados['estatisticas']['idade_media_mae']} anos")
+    kpi_card("Idade Media das Maes", f"{dados['estatisticas']['idade_media_mae']} anos")
 
 # ==========================================
-# EVOLUÇÃO + PROJEÇÃO
+# EVOLUCAO + PROJECAO
 # ==========================================
-st.markdown('<div class="secao-titulo">Evolução Histórica e Projeção (2014-2030)</div>', unsafe_allow_html=True)
+st.markdown('<div class="secao-titulo">Evolucao Historica e Projecao (2014-2030)</div>', unsafe_allow_html=True)
 
 fig_hist = go.Figure()
 
 fig_hist.add_trace(go.Scatter(
     x=anos_hist, y=valores_hist,
-    mode='lines+markers', name='Histórico',
+    mode='lines+markers', name='Historico',
     line=dict(color=AZUL, width=3),
     marker=dict(size=10, color=AZUL, line=dict(color=BRANCO, width=2)),
     hovertemplate='<b>%{x}</b><br>%{y:,.0f} nascimentos<extra></extra>'
@@ -595,35 +629,35 @@ fig_hist.add_trace(go.Scatter(
 
 fig_hist.add_trace(go.Scatter(
     x=anos_projecao, y=valores_projetados,
-    mode='lines+markers', name='Projeção Realista',
+    mode='lines+markers', name='Projecao Realista',
     line=dict(color=AMARELO, width=3, dash='dash'),
     marker=dict(size=10, color=AMARELO, symbol='diamond', line=dict(color=BRANCO, width=2)),
-    hovertemplate='<b>%{x}</b><br>Projeção: %{y:,.0f}<extra></extra>'
+    hovertemplate='<b>%{x}</b><br>Projecao: %{y:,.0f}<extra></extra>'
 ))
 
 fig_hist.add_trace(go.Scatter(
     x=anos_projecao, y=valores_otimista,
-    mode='lines', name='Cenário Otimista',
+    mode='lines', name='Cenario Otimista',
     line=dict(color=VERDE, width=1.5, dash='dot'),
     hovertemplate='<b>%{x}</b><br>Otimista: %{y:,.0f}<extra></extra>'
 ))
 
 fig_hist.add_trace(go.Scatter(
     x=anos_projecao, y=valores_pessimista,
-    mode='lines', name='Cenário Pessimista',
+    mode='lines', name='Cenario Pessimista',
     line=dict(color=CORAL, width=1.5, dash='dot'),
     hovertemplate='<b>%{x}</b><br>Pessimista: %{y:,.0f}<extra></extra>'
 ))
 
 fig_hist.add_vline(
     x=2025.5, line_width=1, line_dash="solid", line_color="#999999",
-    annotation_text="Início da Projeção", annotation_position="top"
+    annotation_text="Inicio da Projecao", annotation_position="top"
 )
 
 fig_hist.update_layout(
     height=450,
     margin=dict(l=20, r=20, t=40, b=40),
-    xaxis_title="Ano", yaxis_title="Número de Nascidos",
+    xaxis_title="Ano", yaxis_title="Numero de Nascidos",
     plot_bgcolor=BRANCO, paper_bgcolor=BRANCO,
     font=dict(family="Arial", size=12, color=GRAFITE),
     separators=',.',
@@ -635,38 +669,38 @@ st.plotly_chart(fig_hist, use_container_width=True)
 
 st.markdown(f"""
 <div class="info-projecao">
-    <strong>Nota metodológica:</strong> A projeção foi calculada por <strong>regressão linear</strong> 
-    com base nos dados históricos de {anos_hist[0]} a {anos_hist[-1]}. 
-    Os cenários otimista e pessimista representam o intervalo de confiança de 95%. 
-    <strong>Estas projeções são indicativas para planejamento de políticas públicas</strong> 
+    <strong>Nota metodologica:</strong> A projecao foi calculada por <strong>regressao linear</strong> 
+    com base nos dados historicos de {anos_hist[0]} a {anos_hist[-1]}. 
+    Os cenarios otimista e pessimista representam o intervalo de confianca de 95%. 
+    <strong>Estas projecoes sao indicativas para planejamento de politicas publicas</strong> 
     e devem ser revisadas anualmente.
 </div>
 """, unsafe_allow_html=True)
 
 # ==========================================
-# CARDS DE PROJEÇÃO
+# CARDS DE PROJECAO
 # ==========================================
-st.markdown('<div class="secao-titulo">Projeção para 2026-2030</div>', unsafe_allow_html=True)
+st.markdown('<div class="secao-titulo">Projecao para 2026-2030</div>', unsafe_allow_html=True)
 
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
     kpi_card("Total Projetado (2026-2030)", fmt(total_2026_2030))
 with col2:
-    kpi_card("Média Anual Projetada", fmt(media_projetada))
+    kpi_card("Media Anual Projetada", fmt(media_projetada))
 with col3:
-    tendencia_txt = "Crescimento" if coef[0] > 0 else "Redução"
+    tendencia_txt = "Crescimento" if coef[0] > 0 else "Reducao"
     cor_tend = VERDE if coef[0] > 0 else CORAL
-    kpi_card("Tendência Identificada", tendencia_txt, f"{coef[0]:+.0f} nascidos/ano", cor=cor_tend)
+    kpi_card("Tendencia Identificada", tendencia_txt, f"{coef[0]:+.0f} nascidos/ano", cor=cor_tend)
 with col4:
-    kpi_card("Projeção 2030", fmt(valores_projetados[-1]))
+    kpi_card("Projecao 2030", fmt(valores_projetados[-1]))
 
 st.markdown("**Detalhamento por Ano:**")
 tabela_projecao = pd.DataFrame({
     'Ano': anos_projecao,
-    'Cenário Pessimista': [fmt(v) for v in valores_pessimista],
-    'Projeção Realista': [fmt(v) for v in valores_projetados],
-    'Cenário Otimista': [fmt(v) for v in valores_otimista],
+    'Cenario Pessimista': [fmt(v) for v in valores_pessimista],
+    'Projecao Realista': [fmt(v) for v in valores_projetados],
+    'Cenario Otimista': [fmt(v) for v in valores_otimista],
 })
 st.dataframe(tabela_projecao, use_container_width=True, hide_index=True)
 
@@ -676,7 +710,7 @@ st.dataframe(tabela_projecao, use_container_width=True, hide_index=True)
 col1, col2 = st.columns(2)
 
 with col1:
-    st.markdown('<div class="secao-titulo">Distribuição por Sexo</div>', unsafe_allow_html=True)
+    st.markdown('<div class="secao-titulo">Distribuicao por Sexo</div>', unsafe_allow_html=True)
 
     fig_sexo = go.Figure(data=[go.Pie(
         labels=['Masculino', 'Feminino'],
@@ -706,9 +740,9 @@ with col2:
     valores_parto = list(dados['por_parto'].values())
 
     mapa_cores_parto = {
-        'Cesário': CORAL, 'Cesáreo': CORAL, 'Cesariana': CORAL,
+        'Cesario': CORAL, 'Cesareo': CORAL, 'Cesariana': CORAL,
         'Vaginal': VERDE, 'Normal': VERDE,
-        'Sem informações': '#CCCCCC', 'Ignorado': '#CCCCCC'
+        'Sem informacoes': '#CCCCCC', 'Ignorado': '#CCCCCC'
     }
     cores_parto = [mapa_cores_parto.get(l, AZUL_CLARO) for l in labels_parto]
 
@@ -734,9 +768,9 @@ with col2:
     st.plotly_chart(fig_parto, use_container_width=True)
 
 # ==========================================
-# PRÉ-NATAL
+# PRE-NATAL
 # ==========================================
-st.markdown('<div class="secao-titulo">Cobertura de Pré-Natal</div>', unsafe_allow_html=True)
+st.markdown('<div class="secao-titulo">Cobertura de Pre-Natal</div>', unsafe_allow_html=True)
 
 ordem_prenatal = ['Nenhuma', 'de 1 a 3', 'de 4 a 6', '7 e mais', 'Ignorado']
 dados_prenatal_ordenado = {k: dados['por_prenatal'][k] for k in ordem_prenatal if k in dados['por_prenatal']}
@@ -749,12 +783,12 @@ fig_prenatal = go.Figure(data=[go.Bar(
     text=[fmt(v) for v in dados_prenatal_ordenado.values()],
     textposition='outside',
     textfont=dict(size=12, color=GRAFITE),
-    hovertemplate='<b>%{y}</b><br>%{x:,.0f} mães<extra></extra>'
+    hovertemplate='<b>%{y}</b><br>%{x:,.0f} maes<extra></extra>'
 )])
 fig_prenatal.update_layout(
     height=320,
     margin=dict(l=20, r=80, t=20, b=40),
-    xaxis_title="Número de Mães", yaxis_title="",
+    xaxis_title="Numero de Maes", yaxis_title="",
     plot_bgcolor=BRANCO, paper_bgcolor=BRANCO,
     font=dict(family="Arial", size=12, color=GRAFITE),
     separators=',.',
@@ -767,7 +801,7 @@ st.plotly_chart(fig_prenatal, use_container_width=True)
 # ==========================================
 # PESO AO NASCER
 # ==========================================
-st.markdown('<div class="secao-titulo">Distribuição de Peso ao Nascer</div>', unsafe_allow_html=True)
+st.markdown('<div class="secao-titulo">Distribuicao de Peso ao Nascer</div>', unsafe_allow_html=True)
 
 ordem_peso = [
     'Menos de 500 g', '500 a 999g', '1000 a 1499g', '1500 a 2499g',
@@ -790,12 +824,12 @@ fig_peso = go.Figure(data=[go.Bar(
     text=[fmt(v) for v in dados_peso_ordenado.values()],
     textposition='outside',
     textfont=dict(size=12, color=GRAFITE),
-    hovertemplate='<b>%{y}</b><br>%{x:,.0f} bebês<extra></extra>'
+    hovertemplate='<b>%{y}</b><br>%{x:,.0f} bebes<extra></extra>'
 )])
 fig_peso.update_layout(
     height=380,
     margin=dict(l=20, r=80, t=20, b=40),
-    xaxis_title="Número de Bebês", yaxis_title="",
+    xaxis_title="Numero de Bebes", yaxis_title="",
     plot_bgcolor=BRANCO, paper_bgcolor=BRANCO,
     font=dict(family="Arial", size=12, color=GRAFITE),
     separators=',.',
@@ -806,9 +840,9 @@ fig_peso.update_layout(
 st.plotly_chart(fig_peso, use_container_width=True)
 
 # ==========================================
-# IDADE DAS MÃES
+# IDADE DAS MAES
 # ==========================================
-st.markdown('<div class="secao-titulo">Faixa Etária das Mães</div>', unsafe_allow_html=True)
+st.markdown('<div class="secao-titulo">Faixa Etaria das Maes</div>', unsafe_allow_html=True)
 
 labels_idade = list(dados['por_idade_mae'].keys())
 valores_idade = list(dados['por_idade_mae'].values())
@@ -819,12 +853,12 @@ fig_idade = go.Figure(data=[go.Bar(
     text=[fmt(v) for v in valores_idade],
     textposition='outside',
     textfont=dict(size=12, color=GRAFITE),
-    hovertemplate='<b>%{x}</b><br>%{y:,.0f} mães<extra></extra>'
+    hovertemplate='<b>%{x}</b><br>%{y:,.0f} maes<extra></extra>'
 )])
 fig_idade.update_layout(
     height=400,
     margin=dict(l=20, r=20, t=40, b=40),
-    xaxis_title="Faixa Etária", yaxis_title="Número de Mães",
+    xaxis_title="Faixa Etaria", yaxis_title="Numero de Maes",
     plot_bgcolor=BRANCO, paper_bgcolor=BRANCO,
     font=dict(family="Arial", size=12, color=GRAFITE),
     separators=',.',
@@ -835,10 +869,10 @@ fig_idade.update_layout(
 st.plotly_chart(fig_idade, use_container_width=True)
 
 # ==========================================
-# GESTAÇÃO
+# GESTACAO
 # ==========================================
 if 'por_gestacao' in dados:
-    st.markdown('<div class="secao-titulo">Duração da Gestação</div>', unsafe_allow_html=True)
+    st.markdown('<div class="secao-titulo">Duracao da Gestacao</div>', unsafe_allow_html=True)
 
     labels_gest = list(dados['por_gestacao'].keys())
     valores_gest = list(dados['por_gestacao'].values())
@@ -849,12 +883,12 @@ if 'por_gestacao' in dados:
         text=[fmt(v) for v in valores_gest],
         textposition='outside',
         textfont=dict(size=12, color=GRAFITE),
-        hovertemplate='<b>%{y}</b><br>%{x:,.0f} bebês<extra></extra>'
+        hovertemplate='<b>%{y}</b><br>%{x:,.0f} bebes<extra></extra>'
     )])
     fig_gest.update_layout(
         height=350,
         margin=dict(l=20, r=80, t=20, b=40),
-        xaxis_title="Número de Bebês", yaxis_title="",
+        xaxis_title="Numero de Bebes", yaxis_title="",
         plot_bgcolor=BRANCO, paper_bgcolor=BRANCO,
         font=dict(family="Arial", size=12, color=GRAFITE),
         separators=',.',
@@ -872,34 +906,34 @@ st.markdown('<div class="secao-titulo">Indicadores Resumidos</div>', unsafe_allo
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    kpi_card("Peso Médio ao Nascer", f"{dados['estatisticas']['peso_medio_g']:.0f} g")
+    kpi_card("Peso Medio ao Nascer", f"{dados['estatisticas']['peso_medio_g']:.0f} g")
     st.markdown("<br>", unsafe_allow_html=True)
-    kpi_card("Peso Mínimo", f"{dados['estatisticas']['peso_min_g']} g")
+    kpi_card("Peso Minimo", f"{dados['estatisticas']['peso_min_g']} g")
     st.markdown("<br>", unsafe_allow_html=True)
-    kpi_card("Peso Máximo", f"{dados['estatisticas']['peso_max_g']} g")
+    kpi_card("Peso Maximo", f"{dados['estatisticas']['peso_max_g']} g")
 
 with col2:
-    kpi_card("Idade Média das Mães", f"{dados['estatisticas']['idade_media_mae']} anos")
+    kpi_card("Idade Media das Maes", f"{dados['estatisticas']['idade_media_mae']} anos")
     st.markdown("<br>", unsafe_allow_html=True)
-    kpi_card("Idade Mínima", f"{dados['estatisticas']['idade_min_mae']} anos")
+    kpi_card("Idade Minima", f"{dados['estatisticas']['idade_min_mae']} anos")
     st.markdown("<br>", unsafe_allow_html=True)
-    kpi_card("Idade Máxima", f"{dados['estatisticas']['idade_max_mae']} anos")
+    kpi_card("Idade Maxima", f"{dados['estatisticas']['idade_max_mae']} anos")
 
 with col3:
-    kpi_card("Período Histórico", f"{anos_hist[0]} a {anos_hist[-1]}")
+    kpi_card("Periodo Historico", f"{anos_hist[0]} a {anos_hist[-1]}")
     st.markdown("<br>", unsafe_allow_html=True)
     kpi_card("Anos Analisados", f"{len(anos_hist)} anos")
     st.markdown("<br>", unsafe_allow_html=True)
-    kpi_card("Média Anual", fmt(media_anual))
+    kpi_card("Media Anual", fmt(media_anual))
 
 # ==========================================
-# RODAPÉ
+# RODAPE
 # ==========================================
 st.markdown(f"""
 <div class="rodape-inst">
-    <strong>Fonte dos dados:</strong> SINASC — Sistema de Informação sobre Nascidos Vivos<br>
-    <strong>Observatório da Primeira Infância de Caucaia</strong><br>
-    Prefeitura Municipal de Caucaia · Secretaria Municipal de Saúde<br>
-    <em>Última atualização: {datetime.now().strftime('%d/%m/%Y às %H:%M')}</em>
+    <strong>Fonte dos dados:</strong> SINASC - Sistema de Informacao sobre Nascidos Vivos<br>
+    <strong>Observatorio da Primeira Infancia de Caucaia</strong><br>
+    Prefeitura Municipal de Caucaia - Secretaria Municipal de Saude<br>
+    <em>Ultima atualizacao: {datetime.now().strftime('%d/%m/%Y as %H:%M')}</em>
 </div>
 """, unsafe_allow_html=True)
