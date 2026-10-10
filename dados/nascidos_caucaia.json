@@ -1,0 +1,74 @@
+{
+  "municipio": "Caucaia",
+  "estado": "Ceará",
+  "total_nascimentos": 61668,
+  "periodo": {
+    "inicio": "2014",
+    "fim": "2026"
+  },
+  "por_ano": {
+    "2014": 5008,
+    "2015": 5392,
+    "2016": 5040,
+    "2017": 5427,
+    "2018": 5474,
+    "2019": 5345,
+    "2020": 5123,
+    "2021": 4978,
+    "2022": 4789,
+    "2023": 4581,
+    "2024": 4416,
+    "2025": 4578,
+    "2026": 1517
+  },
+  "por_sexo": {
+    "Masculino": 31479,
+    "Feminino": 30178,
+    "Ignorado": 11
+  },
+  "por_parto": {
+    "Cesário": 36452,
+    "Vaginal": 25133,
+    "Sem informações": 83
+  },
+  "por_peso": {
+    "3000 a 3999g": 39889,
+    "2500 a 2999g": 12774,
+    "1500 a 2499g": 4200,
+    "4000g e mais": 3814,
+    "1000 a 1499g": 491,
+    "500 a 999g": 354,
+    "Menos de 500 g": 146
+  },
+  "por_prenatal": {
+    "7 e mais": 39843,
+    " de 4 a 6": 15525,
+    "de 1 a 3": 4225,
+    "Nenhuma": 1871,
+    "Ignorado": 204
+  },
+  "por_idade_mae": {
+    "20 a 29 anos": 31321,
+    "30 a 39 anos": 18734,
+    "15 a 19 anos": 9253,
+    "40 a 49 anos": 1778,
+    "10 a 14 anos": 582
+  },
+  "por_gestacao": {
+    "37 a 41 semanas": 49511,
+    "32 a 36 semanas": 6164,
+    "Sem informações": 3552,
+    "42 semanas e mais": 1343,
+    "28 a 31 semanas": 670,
+    "22 a 27 semanas": 371,
+    "Menos de 22 semanas": 57
+  },
+  "estatisticas": {
+    "peso_medio_g": 3217.0,
+    "peso_min_g": 218,
+    "peso_max_g": 6000,
+    "idade_media_mae": 26.6,
+    "idade_min_mae": 11,
+    "idade_max_mae": 48
+  }
+}
