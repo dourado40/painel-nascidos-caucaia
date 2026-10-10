@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Painel de Nascidos Vivos - Observatório da Primeira Infância de Caucaia
-Versão final - tabela com st.dataframe e CSS completo
+Versão final - tabela em HTML puro para garantir estilo profissional
 """
 
 import streamlit as st
@@ -541,71 +541,85 @@ with col4:
     kpi_card("Projecao 2030", fmt(valores_projetados[-1]))
 
 # ==========================================
-# TABELA COM ST.DATAFRAME (ESTILIZADA)
+# TABELA EM HTML PURO (GARANTE CORES E ALINHAMENTO)
 # ==========================================
 st.markdown("**Detalhamento por Ano:**")
 
-# Criando o DataFrame
-tabela_projecao = pd.DataFrame({
-    'Ano': anos_projecao,
-    'Cenario Pessimista': [fmt(v) for v in valores_pessimista],
-    'Projecao Realista': [fmt(v) for v in valores_projetados],
-    'Cenario Otimista': [fmt(v) for v in valores_otimista],
-})
+html_tabela = """
+<style>
+    .tabela-projecao {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: 'Arial', sans-serif;
+        font-size: 14px;
+        margin-top: 10px;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+    .tabela-projecao th {
+        background-color: #16305A;
+        color: #FFFFFF;
+        font-weight: bold;
+        padding: 12px 15px;
+        text-align: center;
+        border: 1px solid #1F3A6E;
+    }
+    .tabela-projecao th:first-child {
+        text-align: left;
+    }
+    .tabela-projecao td {
+        padding: 10px 15px;
+        color: #333333;
+        background-color: #FFFFFF;
+        border-bottom: 1px solid #E0E0E0;
+        text-align: center;
+    }
+    .tabela-projecao td:first-child {
+        text-align: left;
+        font-weight: bold;
+        color: #1F3A6E;
+    }
+    .tabela-projecao tr:nth-child(even) td {
+        background-color: #F9F9F9;
+    }
+    .tabela-projecao tr:hover td {
+        background-color: #F0F4F8;
+    }
+</style>
 
-# Aplicando estilo profissional
-styled_df = tabela_projecao.style.set_properties(**{
-    'background-color': '#FFFFFF',
-    'color': '#333333',
-    'border-color': '#E0E0E0',
-    'text-align': 'center', # Centraliza o conteúdo de TODAS as células por padrão
-    'font-size': '14px',
-    'padding': '8px'
-}).set_properties(subset=['Ano'], **{
-    'text-align': 'left', # Alinha APENAS a coluna Ano à esquerda
-    'font-weight': 'bold',
-    'color': '#1F3A6E' # Azul institucional para o texto do ano
-}).set_table_styles([
-    # Estilo do Cabeçalho (Linha de Rótulo)
-    {'selector': 'th', 'props': [
-        ('background-color', '#16305A'), # Azul Escuro (combinando com a paleta)
-        ('color', 'white'),
-        ('text-align', 'center'), # Centraliza os títulos das colunas
-        ('font-weight', 'bold'),
-        ('padding', '10px'),
-        ('border', '1px solid #1F3A6E')
-    ]},
-    # Estilo específico para o cabeçalho da coluna "Ano" (Alinhado à esquerda)
-    {'selector': 'th:first-child', 'props': [
-        ('text-align', 'left')
-    ]},
-    # Estilo das células de dados (td) para garantir a centralização
-    {'selector': 'td', 'props': [
-        ('text-align', 'center')
-    ]},
-    # Estilo específico das células da coluna "Ano" (Alinhado à esquerda)
-    {'selector': 'td:first-child', 'props': [
-        ('text-align', 'left')
-    ]},
-    # Efeito zebrado suave nas linhas pares
-    {'selector': 'tr:nth-child(even)', 'props': [
-        ('background-color', '#F9F9F9')
-    ]},
-    # Efeito hover suave
-    {'selector': 'tr:hover', 'props': [
-        ('background-color', '#F0F4F8')
-    ]}
-])
+<table class="tabela-projecao">
+    <thead>
+        <tr>
+            <th>Ano</th>
+            <th>Cenário Pessimista</th>
+            <th>Projeção Realista</th>
+            <th>Cenário Otimista</th>
+        </tr>
+    </thead>
+    <tbody>
+"""
 
-# Renderizando a tabela estilizada
-st.dataframe(
-    styled_df,
-    use_container_width=True,
-    hide_index=True
-)
+for i, ano in enumerate(anos_projecao):
+    html_tabela += f"""
+        <tr>
+            <td>{ano}</td>
+            <td>{fmt(valores_pessimista[i])}</td>
+            <td>{fmt(valores_projetados[i])}</td>
+            <td>{fmt(valores_otimista[i])}</td>
+        </tr>
+    """
+
+html_tabela += """
+    </tbody>
+</table>
+"""
+
+st.markdown(html_tabela, unsafe_allow_html=True)
 
 # ==========================================
-# SEXO E PARTO# ==========================================
+# SEXO E PARTO
+# ==========================================
 col1, col2 = st.columns(2)
 
 with col1:
