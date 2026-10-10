@@ -553,34 +553,47 @@ tabela_projecao = pd.DataFrame({
     'Cenario Otimista': [fmt(v) for v in valores_otimista],
 })
 
-# Aplicando estilo profissional (fundo branco, texto escuro, alinhamento)
+# Aplicando estilo profissional
 styled_df = tabela_projecao.style.set_properties(**{
     'background-color': '#FFFFFF',
     'color': '#333333',
     'border-color': '#E0E0E0',
-    'text-align': 'center', # Centraliza o conteúdo por padrão
+    'text-align': 'center', # Centraliza o conteúdo de TODAS as células por padrão
     'font-size': '14px',
     'padding': '8px'
 }).set_properties(subset=['Ano'], **{
-    'text-align': 'left', # Alinha apenas a coluna Ano à esquerda
+    'text-align': 'left', # Alinha APENAS a coluna Ano à esquerda
     'font-weight': 'bold',
-    'color': '#1F3A6E' # Azul institucional para o ano
+    'color': '#1F3A6E' # Azul institucional para o texto do ano
 }).set_table_styles([
+    # Estilo do Cabeçalho (Linha de Rótulo)
     {'selector': 'th', 'props': [
-        ('background-color', '#1F3A6E'), # Cabeçalho Azul
+        ('background-color', '#16305A'), # Azul Escuro (combinando com a paleta)
         ('color', 'white'),
-        ('text-align', 'center'),
+        ('text-align', 'center'), # Centraliza os títulos das colunas
         ('font-weight', 'bold'),
-        ('padding', '10px')
+        ('padding', '10px'),
+        ('border', '1px solid #1F3A6E')
     ]},
+    # Estilo específico para o cabeçalho da coluna "Ano" (Alinhado à esquerda)
     {'selector': 'th:first-child', 'props': [
-        ('text-align', 'left') # Cabeçalho "Ano" alinhado à esquerda
+        ('text-align', 'left')
     ]},
+    # Estilo das células de dados (td) para garantir a centralização
+    {'selector': 'td', 'props': [
+        ('text-align', 'center')
+    ]},
+    # Estilo específico das células da coluna "Ano" (Alinhado à esquerda)
+    {'selector': 'td:first-child', 'props': [
+        ('text-align', 'left')
+    ]},
+    # Efeito zebrado suave nas linhas pares
     {'selector': 'tr:nth-child(even)', 'props': [
-        ('background-color', '#F9F9F9') # Linhas zebradas para melhor leitura
+        ('background-color', '#F9F9F9')
     ]},
+    # Efeito hover suave
     {'selector': 'tr:hover', 'props': [
-        ('background-color', '#F0F4F8') # Efeito hover suave
+        ('background-color', '#F0F4F8')
     ]}
 ])
 
@@ -592,8 +605,7 @@ st.dataframe(
 )
 
 # ==========================================
-# SEXO E PARTO
-# ==========================================
+# SEXO E PARTO# ==========================================
 col1, col2 = st.columns(2)
 
 with col1:
