@@ -541,10 +541,11 @@ with col4:
     kpi_card("Projecao 2030", fmt(valores_projetados[-1]))
 
 # ==========================================
-# TABELA COM ST.DATAFRAME
+# TABELA COM ST.DATAFRAME (ESTILIZADA)
 # ==========================================
 st.markdown("**Detalhamento por Ano:**")
 
+# Criando o DataFrame
 tabela_projecao = pd.DataFrame({
     'Ano': anos_projecao,
     'Cenario Pessimista': [fmt(v) for v in valores_pessimista],
@@ -552,8 +553,40 @@ tabela_projecao = pd.DataFrame({
     'Cenario Otimista': [fmt(v) for v in valores_otimista],
 })
 
+# Aplicando estilo profissional (fundo branco, texto escuro, alinhamento)
+styled_df = tabela_projecao.style.set_properties(**{
+    'background-color': '#FFFFFF',
+    'color': '#333333',
+    'border-color': '#E0E0E0',
+    'text-align': 'center', # Centraliza o conteúdo por padrão
+    'font-size': '14px',
+    'padding': '8px'
+}).set_properties(subset=['Ano'], **{
+    'text-align': 'left', # Alinha apenas a coluna Ano à esquerda
+    'font-weight': 'bold',
+    'color': '#1F3A6E' # Azul institucional para o ano
+}).set_table_styles([
+    {'selector': 'th', 'props': [
+        ('background-color', '#1F3A6E'), # Cabeçalho Azul
+        ('color', 'white'),
+        ('text-align', 'center'),
+        ('font-weight', 'bold'),
+        ('padding', '10px')
+    ]},
+    {'selector': 'th:first-child', 'props': [
+        ('text-align', 'left') # Cabeçalho "Ano" alinhado à esquerda
+    ]},
+    {'selector': 'tr:nth-child(even)', 'props': [
+        ('background-color', '#F9F9F9') # Linhas zebradas para melhor leitura
+    ]},
+    {'selector': 'tr:hover', 'props': [
+        ('background-color', '#F0F4F8') # Efeito hover suave
+    ]}
+])
+
+# Renderizando a tabela estilizada
 st.dataframe(
-    tabela_projecao,
+    styled_df,
     use_container_width=True,
     hide_index=True
 )
