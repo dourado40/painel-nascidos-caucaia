@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Painel de Nascidos Vivos - Observatório da Primeira Infância de Caucaia
-Versão final - esconde barra do Streamlit
+Versão final - legendas visíveis e ícones escondidos
 """
 
 import streamlit as st
@@ -13,7 +13,6 @@ import pandas as pd
 from io import BytesIO
 from datetime import datetime
 
-# Bibliotecas de PDF
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
@@ -24,7 +23,7 @@ from reportlab.platypus import (
 from reportlab.lib.enums import TA_JUSTIFY, TA_CENTER
 
 # ==========================================
-# CONFIGURAÇÃO
+# CONFIGURACAO
 # ==========================================
 st.set_page_config(
     page_title="Nascidos Vivos - Caucaia",
@@ -33,38 +32,41 @@ st.set_page_config(
 )
 
 # ==========================================
-# ESCONDER BARRA DO STREAMLIT
+# CSS - ESCONDER BARRA E ICONES DO STREAMLIT
 # ==========================================
 st.markdown("""
 <style>
-    /* Esconde a barra superior do Streamlit */
-    header[data-testid="stHeader"] {
-        display: none !important;
-    }
-    /* Esconde o menu hamburguer */
-    #MainMenu {
-        display: none !important;
-    }
-    /* Esconde o rodape "Made with Streamlit" */
-    footer {
-        display: none !important;
-    }
-    /* Esconde o botao "Deploy" */
-    .stDeployButton {
-        display: none !important;
-    }
-    /* Esconde a barra de ferramentas do app */
-    div[data-testid="stToolbar"] {
-        display: none !important;
-    }
-    /* Remove espaco em branco do topo */
-    .block-container {
-        padding-top: 1rem !important;
-    }
-    /* Esconde o link de ancora */
-    .stApp a.anchor-link {
-        display: none !important;
-    }
+    /* Esconder cabecalho */
+    header[data-testid="stHeader"] { display: none !important; }
+    
+    /* Esconder menu hamburguer */
+    #MainMenu { display: none !important; }
+    
+    /* Esconder rodape */
+    footer { display: none !important; }
+    
+    /* Esconder botao Deploy */
+    .stDeployButton { display: none !important; }
+    
+    /* Esconder toolbar */
+    div[data-testid="stToolbar"] { display: none !important; }
+    
+    /* Esconder badge do viewer (icone streamlit) */
+    div[data-testid="stStatusWidget"] { display: none !important; }
+    
+    /* Esconder "viewer badge" (icone com coroa) */
+    .viewerBadge_container__1QSob { display: none !important; }
+    .viewerBadge_link__1S137 { display: none !important; }
+    
+    /* Esconder qualquer icone no canto inferior direito */
+    div[class*="viewerBadge"] { display: none !important; }
+    div[class*="StatusWidget"] { display: none !important; }
+    
+    /* Ajustar padding */
+    .block-container { padding-top: 1rem !important; }
+    
+    /* Esconder anchor links */
+    .stApp a.anchor-link { display: none !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -84,7 +86,6 @@ BRANCO = "#FFFFFF"
 # FUNCOES AUXILIARES
 # ==========================================
 def fmt(n):
-    """Formata numero no padrao brasileiro: 1.234.567"""
     try:
         return f"{int(n):,}".replace(",", ".")
     except:
@@ -92,7 +93,6 @@ def fmt(n):
 
 
 def kpi_card(titulo, valor, subtitulo=None, cor=AZUL, cor_texto=None):
-    """Card de KPI com formatacao brasileira"""
     cor_texto = cor_texto or cor
     sub_html = f'<div style="font-size:12px;color:#888;margin-top:8px;">{subtitulo}</div>' if subtitulo else ''
     st.markdown(f"""
@@ -105,7 +105,6 @@ def kpi_card(titulo, valor, subtitulo=None, cor=AZUL, cor_texto=None):
 
 
 def kpi_destaque(titulo, valor, subtitulo=None):
-    """Card de KPI principal"""
     sub_html = f'<div style="font-size:13px;color:#C8D4E8;margin-top:8px;">{subtitulo}</div>' if subtitulo else ''
     st.markdown(f"""
     <div style="background:{AZUL};color:white;padding:24px 28px;border-radius:8px;">
@@ -209,9 +208,6 @@ penultimo = anos_hist[-2]
 var_ano = por_ano_historico[ultimo] - por_ano_historico[penultimo]
 pct_var = (var_ano / por_ano_historico[penultimo]) * 100 if por_ano_historico[penultimo] > 0 else 0
 
-# ==========================================
-# SEXO
-# ==========================================
 def get_sexo_data(por_sexo):
     masc = 0
     fem = 0
@@ -229,9 +225,7 @@ total_sexo = masc + fem
 perc_m = (masc / total_sexo) * 100 if total_sexo > 0 else 0
 perc_f = (fem / total_sexo) * 100 if total_sexo > 0 else 0
 
-# ==========================================
 # PROJECAO
-# ==========================================
 anos_numericos = np.array([int(a) for a in anos_hist])
 valores_numericos = np.array(valores_hist)
 
@@ -252,71 +246,35 @@ media_projetada = int(total_2026_2030 / 5)
 
 
 # ==========================================
-# FUNCAO: GERAR RELATORIO PDF EXECUTIVO
+# FUNCAO PDF
 # ==========================================
 def gerar_relatorio_pdf():
-    """Gera relatorio PDF com analise executiva"""
     buffer = BytesIO()
     doc = SimpleDocTemplate(
-        buffer,
-        pagesize=A4,
-        rightMargin=2*cm,
-        leftMargin=2*cm,
-        topMargin=2*cm,
-        bottomMargin=2*cm,
+        buffer, pagesize=A4,
+        rightMargin=2*cm, leftMargin=2*cm, topMargin=2*cm, bottomMargin=2*cm,
         title="Relatorio de Nascidos Vivos - Caucaia",
         author="Observatorio da Primeira Infancia de Caucaia"
     )
 
     styles = getSampleStyleSheet()
     story = []
-
     cor_azul = colors.HexColor(AZUL)
     cor_grafite = colors.HexColor(GRAFITE)
 
-    titulo = ParagraphStyle(
-        'Titulo', parent=styles['Heading1'],
-        fontSize=20, textColor=cor_azul, spaceAfter=20,
-        alignment=TA_CENTER, fontName='Helvetica-Bold'
-    )
-    subtitulo = ParagraphStyle(
-        'Subtitulo', parent=styles['Heading2'],
-        fontSize=14, textColor=cor_azul, spaceBefore=16, spaceAfter=10,
-        fontName='Helvetica-Bold'
-    )
-    corpo = ParagraphStyle(
-        'Corpo', parent=styles['BodyText'],
-        fontSize=11, textColor=cor_grafite, spaceAfter=8,
-        alignment=TA_JUSTIFY, leading=15
-    )
-    destaque = ParagraphStyle(
-        'Destaque', parent=styles['BodyText'],
-        fontSize=12, textColor=cor_azul, spaceAfter=8,
-        fontName='Helvetica-Bold'
-    )
+    titulo = ParagraphStyle('Titulo', parent=styles['Heading1'], fontSize=20, textColor=cor_azul, spaceAfter=20, alignment=TA_CENTER, fontName='Helvetica-Bold')
+    subtitulo = ParagraphStyle('Subtitulo', parent=styles['Heading2'], fontSize=14, textColor=cor_azul, spaceBefore=16, spaceAfter=10, fontName='Helvetica-Bold')
+    corpo = ParagraphStyle('Corpo', parent=styles['BodyText'], fontSize=11, textColor=cor_grafite, spaceAfter=8, alignment=TA_JUSTIFY, leading=15)
+    destaque = ParagraphStyle('Destaque', parent=styles['BodyText'], fontSize=12, textColor=cor_azul, spaceAfter=8, fontName='Helvetica-Bold')
 
-    # CAPA
     story.append(Paragraph("PREFEITURA MUNICIPAL DE CAUCAIA", titulo))
-    story.append(Paragraph(
-        "Observatorio da Primeira Infancia",
-        ParagraphStyle('Sub', parent=titulo, fontSize=14, spaceAfter=8)
-    ))
+    story.append(Paragraph("Observatorio da Primeira Infancia", ParagraphStyle('Sub', parent=titulo, fontSize=14, spaceAfter=8)))
     story.append(Spacer(1, 0.5*cm))
-    story.append(Paragraph(
-        "RELATORIO DE NASCIDOS VIVOS",
-        ParagraphStyle('TitRel', parent=titulo, fontSize=18, spaceAfter=12)
-    ))
-    story.append(Paragraph(
-        f"Periodo de analise: {anos_hist[0]} a {anos_hist[-1]}",
-        ParagraphStyle('Periodo', parent=corpo, alignment=TA_CENTER, fontSize=12)
-    ))
-    story.append(Paragraph(
-        f"Gerado em: {datetime.now().strftime('%d/%m/%Y as %H:%M')}",
-        ParagraphStyle('Data', parent=corpo, alignment=TA_CENTER, fontSize=10, textColor=colors.gray)
-    ))
+    story.append(Paragraph("RELATORIO DE NASCIDOS VIVOS", ParagraphStyle('TitRel', parent=titulo, fontSize=18, spaceAfter=12)))
+    story.append(Paragraph(f"Periodo de analise: {anos_hist[0]} a {anos_hist[-1]}", ParagraphStyle('Periodo', parent=corpo, alignment=TA_CENTER, fontSize=12)))
+    story.append(Paragraph(f"Gerado em: {datetime.now().strftime('%d/%m/%Y as %H:%M')}", ParagraphStyle('Data', parent=corpo, alignment=TA_CENTER, fontSize=10, textColor=colors.gray)))
     story.append(Spacer(1, 1*cm))
 
-    # 1. SUMARIO EXECUTIVO
     story.append(Paragraph("1. SUMARIO EXECUTIVO", subtitulo))
     tendencia_txt = "crescimento" if coef[0] > 0 else "reducao"
     texto_executivo = f"""
@@ -330,16 +288,12 @@ def gerar_relatorio_pdf():
     <b>{fmt(total_2026_2030)} nascimentos</b> para o quinquenio 2026-2030.
     <br/><br/>
     Os dados aqui apresentados servem como base tecnica para o planejamento de 
-    politicas publicas voltadas a Primeira Infancia, orientando a alocacao de 
-    recursos nas areas de saude materno-infantil, educacao infantil, assistencia 
-    social e infraestrutura urbana.
+    politicas publicas voltadas a Primeira Infancia.
     """
     story.append(Paragraph(texto_executivo, corpo))
     story.append(Spacer(1, 0.5*cm))
 
-    # 2. INDICADORES PRINCIPAIS
     story.append(Paragraph("2. INDICADORES PRINCIPAIS", subtitulo))
-
     dados_tabela = [
         ['Indicador', 'Valor'],
         ['Total de Nascidos Vivos', fmt(dados['total_nascimentos'])],
@@ -353,66 +307,35 @@ def gerar_relatorio_pdf():
         ['Idade Minima das Maes', f"{dados['estatisticas']['idade_min_mae']} anos"],
         ['Idade Maxima das Maes', f"{dados['estatisticas']['idade_max_mae']} anos"],
     ]
-
     tabela = Table(dados_tabela, colWidths=[10*cm, 6*cm])
     tabela.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), cor_azul),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 11),
         ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
         ('ALIGN', (1, 1), (1, -1), 'CENTER'),
         ('FONTNAME', (1, 1), (1, -1), 'Helvetica-Bold'),
         ('TEXTCOLOR', (1, 1), (1, -1), cor_azul),
         ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor("#F8F9FA")),
         ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor("#DDDDDD")),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('LEFTPADDING', (0, 0), (-1, -1), 10),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 10),
         ('TOPPADDING', (0, 0), (-1, -1), 8),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
     ]))
     story.append(tabela)
 
-    # 3. PROJECAO
     story.append(PageBreak())
     story.append(Paragraph("3. PROJECAO PARA 2026-2030", subtitulo))
-
     texto_projecao = f"""
-    Com base na analise de regressao linear dos dados historicos, projeta-se 
+    Com base na analise de regressao linear, projeta-se 
     <b>{fmt(total_2026_2030)} nascimentos</b> no quinquenio 2026-2030, com 
     media anual de <b>{fmt(media_projetada)} nascimentos</b>.
-    <br/><br/>
-    O cenario projetado aponta para uma <b>{tendencia_txt}</b> de aproximadamente 
-    <b>{abs(coef[0]):.0f} nascimentos por ano</b>. Recomenda-se que o municipio 
-    considere esse cenario no planejamento das politicas publicas de Primeira 
-    Infancia.
     """
     story.append(Paragraph(texto_projecao, corpo))
-
-    recomendacoes_lista = [
-        "Vagas em creches e pre-escolas (rede municipal de educacao infantil)",
-        "Equipes de saude da familia e agentes comunitarios",
-        "Programas de assistencia social e transferencia de renda",
-        "Infraestrutura urbana (parques, pracas, mobilidade)",
-        "Programas de apoio a maternidade e primeira infancia",
-    ]
-    for rec in recomendacoes_lista:
-        story.append(Paragraph(f"• {rec}", ParagraphStyle(
-            'Lista', parent=corpo, leftIndent=0.8*cm, spaceAfter=4
-        )))
-
     story.append(Spacer(1, 0.5*cm))
-    story.append(Paragraph("Detalhamento da Projecao", destaque))
 
     dados_proj = [['Ano', 'Pessimista', 'Realista', 'Otimista']]
     for i, ano in enumerate(anos_projecao):
-        dados_proj.append([
-            str(ano),
-            fmt(valores_pessimista[i]),
-            fmt(valores_projetados[i]),
-            fmt(valores_otimista[i])
-        ])
+        dados_proj.append([str(ano), fmt(valores_pessimista[i]), fmt(valores_projetados[i]), fmt(valores_otimista[i])])
 
     tabela_proj = Table(dados_proj, colWidths=[3*cm, 4*cm, 4*cm, 4*cm])
     tabela_proj.setStyle(TableStyle([
@@ -429,14 +352,6 @@ def gerar_relatorio_pdf():
     ]))
     story.append(tabela_proj)
 
-    story.append(Spacer(1, 0.3*cm))
-    story.append(Paragraph(
-        "<i>Nota: os cenarios otimista e pessimista representam o intervalo de "
-        "confianca de 95% da regressao linear.</i>",
-        ParagraphStyle('Nota', parent=corpo, fontSize=9, textColor=colors.gray)
-    ))
-
-    # 4. SAUDE MATERNO-INFANTIL
     story.append(PageBreak())
     story.append(Paragraph("4. ANALISE DE SAUDE MATERNO-INFANTIL", subtitulo))
 
@@ -449,12 +364,10 @@ def gerar_relatorio_pdf():
 
     texto_prenatal = f"""
     Das <b>{fmt(total_prenatal)}</b> maes registradas, <b>{fmt(pren_adequado)}</b> 
-    (<b>{perc_adequado:.1f}%</b>) realizaram <b>7 ou mais consultas</b> de pre-natal, 
-    considerado o padrao adequado pela OMS.
+    (<b>{perc_adequado:.1f}%</b>) realizaram <b>7 ou mais consultas</b> de pre-natal.
     <br/><br/>
     <b>Atencao:</b> <b>{fmt(pren_nenhum)}</b> maes (<b>{perc_nenhum:.1f}%</b>) 
-    <b>nao realizaram nenhuma consulta</b> de pre-natal. Este indicador merece 
-    acao prioritaria da gestao.
+    <b>nao realizaram nenhuma consulta</b>.
     """
     story.append(Paragraph(texto_prenatal, corpo))
     story.append(Spacer(1, 0.3*cm))
@@ -477,80 +390,39 @@ def gerar_relatorio_pdf():
     story.append(Spacer(1, 0.3*cm))
 
     story.append(Paragraph("Peso ao Nascer", destaque))
-    baixo_peso = sum(v for k, v in dados['por_peso'].items()
-                     if 'Menos de 500' in k or '500 a 999' in k
-                     or '1000 a 1499' in k or '1500 a 2499' in k)
+    baixo_peso = sum(v for k, v in dados['por_peso'].items() if 'Menos de 500' in k or '500 a 999' in k or '1000 a 1499' in k or '1500 a 2499' in k)
     total_peso = sum(dados['por_peso'].values())
     perc_baixo = (baixo_peso / total_peso) * 100 if total_peso > 0 else 0
 
     texto_peso = f"""
-    A media de peso ao nascer e de <b>{dados['estatisticas']['peso_medio_g']:.0f} g</b>, 
-    considerado adequado.
+    A media de peso ao nascer e de <b>{dados['estatisticas']['peso_medio_g']:.0f} g</b>.
     <br/><br/>
     Foram registrados <b>{fmt(baixo_peso)}</b> bebes com <b>peso inferior a 2.500 g</b> 
-    (<b>{perc_baixo:.1f}%</b> do total), indicando a necessidade de acompanhamento 
-    especializado em saude neonatal.
+    (<b>{perc_baixo:.1f}%</b>).
     """
     story.append(Paragraph(texto_peso, corpo))
 
-    # 5. RECOMENDACOES
     story.append(PageBreak())
     story.append(Paragraph("5. RECOMENDACOES PARA A GESTAO MUNICIPAL", subtitulo))
+    story.append(Paragraph("Com base na analise tecnica, apresentam-se as seguintes recomendacoes:", corpo))
 
-    texto_rec = """
-    Com base na analise tecnica dos dados de nascidos vivos no municipio de Caucaia, 
-    a equipe do Observatorio da Primeira Infancia apresenta as seguintes 
-    recomendacoes para consideracao da gestao municipal:
-    """
-    story.append(Paragraph(texto_rec, corpo))
-    story.append(Spacer(1, 0.3*cm))
-
-    recomendacoes_finais = [
-        ("Saude Materno-Infantil",
-         "Ampliar a cobertura de pre-natal adequado, com meta de reduzir os casos de maes "
-         "sem nenhuma consulta. Reforcar busca ativa de gestantes nos territorios."),
-        ("Reducao de Cesarianas Desnecessarias",
-         "Implementar protocolos de classificacao de risco obstetrico e incentivar o parto "
-         "humanizado, alinhando-se as diretrizes da OMS."),
-        ("Educacao Infantil",
-         "Dimensionar a oferta de vagas em creches e pre-escolas para os proximos 5 anos, "
-         "considerando a projecao de nascimentos."),
-        ("Primeira Infancia e Assistencia Social",
-         "Ampliar a cobertura do Programa Crianca Feliz e do SCFV nas areas com maior "
-         "volume de nascimentos."),
-        ("Infraestrutura Urbana",
-         "Priorizar investimentos em espacos publicos amigaveis a Primeira Infancia nas "
-         "regioes com maior concentracao de nascimentos."),
-        ("Monitoramento Continuo",
-         "Manter a atualizacao anual deste painel, permitindo o acompanhamento das "
-         "politicas publicas e ajustes no planejamento."),
+    recs = [
+        ("Saude Materno-Infantil", "Ampliar a cobertura de pre-natal adequado, com meta de reduzir os casos de maes sem nenhuma consulta."),
+        ("Reducao de Cesarianas Desnecessarias", "Implementar protocolos de classificacao de risco obstetrico."),
+        ("Educacao Infantil", "Dimensionar a oferta de vagas em creches e pre-escolas para os proximos 5 anos."),
+        ("Primeira Infancia e Assistencia Social", "Ampliar a cobertura do Programa Crianca Feliz e do SCFV."),
+        ("Infraestrutura Urbana", "Priorizar investimentos em espacos publicos amigaveis a Primeira Infancia."),
+        ("Monitoramento Continuo", "Manter a atualizacao anual deste painel."),
     ]
 
-    for titulo_rec, texto_rec_item in recomendacoes_finais:
+    for titulo_rec, texto_rec in recs:
         story.append(Paragraph(f"• {titulo_rec}", destaque))
-        story.append(Paragraph(texto_rec_item, ParagraphStyle(
-            'Rec', parent=corpo, leftIndent=0.8*cm, spaceAfter=10
-        )))
+        story.append(Paragraph(texto_rec, ParagraphStyle('Rec', parent=corpo, leftIndent=0.8*cm, spaceAfter=10)))
 
-    # FECHAMENTO
     story.append(Spacer(1, 1*cm))
-    story.append(Paragraph("_________________________________", ParagraphStyle(
-        'Linha', parent=corpo, alignment=TA_CENTER
-    )))
-    story.append(Paragraph(
-        "<b>Observatorio da Primeira Infancia de Caucaia</b>",
-        ParagraphStyle('Ass', parent=corpo, alignment=TA_CENTER, fontSize=12, textColor=cor_azul)
-    ))
-    story.append(Paragraph(
-        "Prefeitura Municipal de Caucaia - Secretaria Municipal de Saude",
-        ParagraphStyle('Ass2', parent=corpo, alignment=TA_CENTER, fontSize=10, textColor=colors.gray)
-    ))
-    story.append(Spacer(1, 0.3*cm))
-    story.append(Paragraph(
-        f"<b>Fonte:</b> SINASC - Sistema de Informacao sobre Nascidos Vivos<br/>"
-        f"<b>Gerado em:</b> {datetime.now().strftime('%d/%m/%Y as %H:%M')}",
-        ParagraphStyle('Fonte', parent=corpo, alignment=TA_CENTER, fontSize=9, textColor=colors.gray)
-    ))
+    story.append(Paragraph("_________________________________", ParagraphStyle('Linha', parent=corpo, alignment=TA_CENTER)))
+    story.append(Paragraph("<b>Observatorio da Primeira Infancia de Caucaia</b>", ParagraphStyle('Ass', parent=corpo, alignment=TA_CENTER, fontSize=12, textColor=cor_azul)))
+    story.append(Paragraph("Prefeitura Municipal de Caucaia - Secretaria Municipal de Saude", ParagraphStyle('Ass2', parent=corpo, alignment=TA_CENTER, fontSize=10, textColor=colors.gray)))
 
     doc.build(story)
     buffer.seek(0)
@@ -591,20 +463,11 @@ with col_btn:
 col_principal, col_espaco, col_kpi1, col_kpi2, col_kpi3 = st.columns([2, 0.3, 1, 1, 1])
 
 with col_principal:
-    kpi_destaque(
-        "Total de Nascidos Vivos no Periodo Historico",
-        fmt(dados['total_nascimentos']),
-        f"Media anual: {fmt(media_anual)} nascimentos"
-    )
+    kpi_destaque("Total de Nascidos Vivos no Periodo Historico", fmt(dados['total_nascimentos']), f"Media anual: {fmt(media_anual)} nascimentos")
 
 with col_kpi1:
     sinal = "+" if var_ano >= 0 else "-"
-    kpi_card(
-        f"Variacao {ultimo} vs {penultimo}",
-        f"{sinal}{fmt(abs(var_ano))}",
-        f"{pct_var:+.1f}%",
-        cor=VERDE if var_ano >= 0 else CORAL
-    )
+    kpi_card(f"Variacao {ultimo} vs {penultimo}", f"{sinal}{fmt(abs(var_ano))}", f"{pct_var:+.1f}%", cor=VERDE if var_ano >= 0 else CORAL)
 
 with col_kpi2:
     kpi_card("Peso Medio ao Nascer", f"{dados['estatisticas']['peso_medio_g']:.0f} g")
@@ -619,51 +482,32 @@ st.markdown('<div class="secao-titulo">Evolucao Historica e Projecao (2014-2030)
 
 fig_hist = go.Figure()
 
-fig_hist.add_trace(go.Scatter(
-    x=anos_hist, y=valores_hist,
-    mode='lines+markers', name='Historico',
-    line=dict(color=AZUL, width=3),
-    marker=dict(size=10, color=AZUL, line=dict(color=BRANCO, width=2)),
-    hovertemplate='<b>%{x}</b><br>%{y:,.0f} nascimentos<extra></extra>'
-))
+fig_hist.add_trace(go.Scatter(x=anos_hist, y=valores_hist, mode='lines+markers', name='Historico',
+    line=dict(color=AZUL, width=3), marker=dict(size=10, color=AZUL, line=dict(color=BRANCO, width=2)),
+    hovertemplate='<b>%{x}</b><br>%{y:,.0f} nascimentos<extra></extra>'))
 
-fig_hist.add_trace(go.Scatter(
-    x=anos_projecao, y=valores_projetados,
-    mode='lines+markers', name='Projecao Realista',
-    line=dict(color=AMARELO, width=3, dash='dash'),
-    marker=dict(size=10, color=AMARELO, symbol='diamond', line=dict(color=BRANCO, width=2)),
-    hovertemplate='<b>%{x}</b><br>Projecao: %{y:,.0f}<extra></extra>'
-))
+fig_hist.add_trace(go.Scatter(x=anos_projecao, y=valores_projetados, mode='lines+markers', name='Projecao Realista',
+    line=dict(color=AMARELO, width=3, dash='dash'), marker=dict(size=10, color=AMARELO, symbol='diamond', line=dict(color=BRANCO, width=2)),
+    hovertemplate='<b>%{x}</b><br>Projecao: %{y:,.0f}<extra></extra>'))
 
-fig_hist.add_trace(go.Scatter(
-    x=anos_projecao, y=valores_otimista,
-    mode='lines', name='Cenario Otimista',
-    line=dict(color=VERDE, width=1.5, dash='dot'),
-    hovertemplate='<b>%{x}</b><br>Otimista: %{y:,.0f}<extra></extra>'
-))
+fig_hist.add_trace(go.Scatter(x=anos_projecao, y=valores_otimista, mode='lines', name='Cenario Otimista',
+    line=dict(color=VERDE, width=1.5, dash='dot'), hovertemplate='<b>%{x}</b><br>Otimista: %{y:,.0f}<extra></extra>'))
 
-fig_hist.add_trace(go.Scatter(
-    x=anos_projecao, y=valores_pessimista,
-    mode='lines', name='Cenario Pessimista',
-    line=dict(color=CORAL, width=1.5, dash='dot'),
-    hovertemplate='<b>%{x}</b><br>Pessimista: %{y:,.0f}<extra></extra>'
-))
+fig_hist.add_trace(go.Scatter(x=anos_projecao, y=valores_pessimista, mode='lines', name='Cenario Pessimista',
+    line=dict(color=CORAL, width=1.5, dash='dot'), hovertemplate='<b>%{x}</b><br>Pessimista: %{y:,.0f}<extra></extra>'))
 
-fig_hist.add_vline(
-    x=2025.5, line_width=1, line_dash="solid", line_color="#999999",
-    annotation_text="Inicio da Projecao", annotation_position="top"
-)
+fig_hist.add_vline(x=2025.5, line_width=1, line_dash="solid", line_color="#999999",
+    annotation_text="Inicio da Projecao", annotation_position="top")
 
 fig_hist.update_layout(
-    height=450,
-    margin=dict(l=20, r=20, t=40, b=40),
+    height=450, margin=dict(l=20, r=20, t=40, b=40),
     xaxis_title="Ano", yaxis_title="Numero de Nascidos",
     plot_bgcolor=BRANCO, paper_bgcolor=BRANCO,
     font=dict(family="Arial", size=12, color=GRAFITE),
     separators=',.',
     legend=dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5),
-    xaxis=dict(showgrid=False, linecolor='#DDDDDD', dtick=1),
-    yaxis=dict(gridcolor='#EEEEEE', linecolor='#DDDDDD')
+    xaxis=dict(showgrid=False, linecolor='#DDDDDD', dtick=1, tickfont=dict(color='#333333', size=12)),
+    yaxis=dict(gridcolor='#EEEEEE', linecolor='#DDDDDD', tickfont=dict(color='#333333', size=12))
 )
 st.plotly_chart(fig_hist, use_container_width=True)
 
@@ -671,15 +515,11 @@ st.markdown(f"""
 <div class="info-projecao">
     <strong>Nota metodologica:</strong> A projecao foi calculada por <strong>regressao linear</strong> 
     com base nos dados historicos de {anos_hist[0]} a {anos_hist[-1]}. 
-    Os cenarios otimista e pessimista representam o intervalo de confianca de 95%. 
-    <strong>Estas projecoes sao indicativas para planejamento de politicas publicas</strong> 
-    e devem ser revisadas anualmente.
+    Os cenarios otimista e pessimista representam o intervalo de confianca de 95%.
 </div>
 """, unsafe_allow_html=True)
 
-# ==========================================
 # CARDS DE PROJECAO
-# ==========================================
 st.markdown('<div class="secao-titulo">Projecao para 2026-2030</div>', unsafe_allow_html=True)
 
 col1, col2, col3, col4 = st.columns(4)
@@ -704,205 +544,120 @@ tabela_projecao = pd.DataFrame({
 })
 st.dataframe(tabela_projecao, use_container_width=True, hide_index=True)
 
-# ==========================================
 # SEXO E PARTO
-# ==========================================
 col1, col2 = st.columns(2)
 
 with col1:
     st.markdown('<div class="secao-titulo">Distribuicao por Sexo</div>', unsafe_allow_html=True)
-
     fig_sexo = go.Figure(data=[go.Pie(
-        labels=['Masculino', 'Feminino'],
-        values=[masc, fem],
-        hole=0.55,
+        labels=['Masculino', 'Feminino'], values=[masc, fem], hole=0.55,
         marker=dict(colors=[AZUL, AMARELO], line=dict(color=BRANCO, width=3)),
-        textinfo='label+percent',
-        textfont=dict(size=14, color=BRANCO, family="Arial"),
+        textinfo='label+percent', textfont=dict(size=14, color=BRANCO, family="Arial"),
         hovertemplate='<b>%{label}</b><br>%{value:,.0f} nascidos<br>%{percent}<extra></extra>'
     )])
-    fig_sexo.update_layout(
-        height=360,
-        margin=dict(l=20, r=20, t=20, b=20),
-        showlegend=True,
-        separators=',.',
-        legend=dict(orientation="h", yanchor="bottom", y=-0.1, xanchor="center", x=0.5,
-                    font=dict(size=13, color=GRAFITE)),
-        font=dict(family="Arial", color=GRAFITE),
-        paper_bgcolor=BRANCO
-    )
+    fig_sexo.update_layout(height=360, margin=dict(l=20, r=20, t=20, b=20), showlegend=True,
+        separators=',.', legend=dict(orientation="h", yanchor="bottom", y=-0.1, xanchor="center", x=0.5, font=dict(size=13, color=GRAFITE)),
+        font=dict(family="Arial", color=GRAFITE), paper_bgcolor=BRANCO)
     st.plotly_chart(fig_sexo, use_container_width=True)
 
 with col2:
     st.markdown('<div class="secao-titulo">Tipo de Parto</div>', unsafe_allow_html=True)
-
     labels_parto = list(dados['por_parto'].keys())
     valores_parto = list(dados['por_parto'].values())
-
-    mapa_cores_parto = {
-        'Cesario': CORAL, 'Cesareo': CORAL, 'Cesariana': CORAL,
-        'Vaginal': VERDE, 'Normal': VERDE,
-        'Sem informacoes': '#CCCCCC', 'Ignorado': '#CCCCCC'
-    }
+    mapa_cores_parto = {'Cesario': CORAL, 'Cesareo': CORAL, 'Cesariana': CORAL, 'Vaginal': VERDE, 'Normal': VERDE, 'Sem informacoes': '#CCCCCC', 'Ignorado': '#CCCCCC'}
     cores_parto = [mapa_cores_parto.get(l, AZUL_CLARO) for l in labels_parto]
-
     fig_parto = go.Figure(data=[go.Pie(
-        labels=labels_parto,
-        values=valores_parto,
-        hole=0.55,
+        labels=labels_parto, values=valores_parto, hole=0.55,
         marker=dict(colors=cores_parto, line=dict(color=BRANCO, width=3)),
-        textinfo='label+percent',
-        textfont=dict(size=13, color=BRANCO, family="Arial"),
+        textinfo='label+percent', textfont=dict(size=13, color=BRANCO, family="Arial"),
         hovertemplate='<b>%{label}</b><br>%{value:,.0f} nascidos<br>%{percent}<extra></extra>'
     )])
-    fig_parto.update_layout(
-        height=360,
-        margin=dict(l=20, r=20, t=20, b=20),
-        showlegend=True,
-        separators=',.',
-        legend=dict(orientation="h", yanchor="bottom", y=-0.1, xanchor="center", x=0.5,
-                    font=dict(size=13, color=GRAFITE)),
-        font=dict(family="Arial", color=GRAFITE),
-        paper_bgcolor=BRANCO
-    )
+    fig_parto.update_layout(height=360, margin=dict(l=20, r=20, t=20, b=20), showlegend=True,
+        separators=',.', legend=dict(orientation="h", yanchor="bottom", y=-0.1, xanchor="center", x=0.5, font=dict(size=13, color=GRAFITE)),
+        font=dict(family="Arial", color=GRAFITE), paper_bgcolor=BRANCO)
     st.plotly_chart(fig_parto, use_container_width=True)
 
-# ==========================================
 # PRE-NATAL
-# ==========================================
 st.markdown('<div class="secao-titulo">Cobertura de Pre-Natal</div>', unsafe_allow_html=True)
-
 ordem_prenatal = ['Nenhuma', 'de 1 a 3', 'de 4 a 6', '7 e mais', 'Ignorado']
 dados_prenatal_ordenado = {k: dados['por_prenatal'][k] for k in ordem_prenatal if k in dados['por_prenatal']}
 
 fig_prenatal = go.Figure(data=[go.Bar(
-    x=list(dados_prenatal_ordenado.values()),
-    y=list(dados_prenatal_ordenado.keys()),
-    orientation='h',
+    x=list(dados_prenatal_ordenado.values()), y=list(dados_prenatal_ordenado.keys()), orientation='h',
     marker=dict(color=AZUL, line=dict(color=BRANCO, width=1)),
-    text=[fmt(v) for v in dados_prenatal_ordenado.values()],
-    textposition='outside',
-    textfont=dict(size=12, color=GRAFITE),
+    text=[fmt(v) for v in dados_prenatal_ordenado.values()], textposition='outside', textfont=dict(size=12, color=GRAFITE),
     hovertemplate='<b>%{y}</b><br>%{x:,.0f} maes<extra></extra>'
 )])
-fig_prenatal.update_layout(
-    height=320,
-    margin=dict(l=20, r=80, t=20, b=40),
-    xaxis_title="Numero de Maes", yaxis_title="",
-    plot_bgcolor=BRANCO, paper_bgcolor=BRANCO,
-    font=dict(family="Arial", size=12, color=GRAFITE),
-    separators=',.',
-    xaxis=dict(gridcolor='#EEEEEE', linecolor='#DDDDDD'),
-    yaxis=dict(showgrid=False, linecolor='#DDDDDD'),
-    showlegend=False
-)
+fig_prenatal.update_layout(height=320, margin=dict(l=20, r=80, t=20, b=40),
+    xaxis_title="Numero de Maes", yaxis_title="", plot_bgcolor=BRANCO, paper_bgcolor=BRANCO,
+    font=dict(family="Arial", size=12, color=GRAFITE), separators=',.',
+    xaxis=dict(gridcolor='#EEEEEE', linecolor='#DDDDDD', tickfont=dict(color='#333333', size=12)),
+    yaxis=dict(showgrid=False, linecolor='#DDDDDD', tickfont=dict(color='#333333', size=12)),
+    showlegend=False)
 st.plotly_chart(fig_prenatal, use_container_width=True)
 
-# ==========================================
-# PESO AO NASCER
-# ==========================================
+# PESO
 st.markdown('<div class="secao-titulo">Distribuicao de Peso ao Nascer</div>', unsafe_allow_html=True)
-
-ordem_peso = [
-    'Menos de 500 g', '500 a 999g', '1000 a 1499g', '1500 a 2499g',
-    '2500 a 2999g', '3000 a 3999g', '4000g e mais', 'Ign'
-]
+ordem_peso = ['Menos de 500 g', '500 a 999g', '1000 a 1499g', '1500 a 2499g', '2500 a 2999g', '3000 a 3999g', '4000g e mais', 'Ign']
 dados_peso_ordenado = {k: dados['por_peso'][k] for k in ordem_peso if k in dados['por_peso']}
-
-cores_peso = {
-    'Menos de 500 g': CORAL, '500 a 999g': CORAL, '1000 a 1499g': CORAL,
-    '1500 a 2499g': AMARELO, '2500 a 2999g': VERDE, '3000 a 3999g': VERDE,
-    '4000g e mais': AMARELO, 'Ign': '#CCCCCC'
-}
+cores_peso = {'Menos de 500 g': CORAL, '500 a 999g': CORAL, '1000 a 1499g': CORAL, '1500 a 2499g': AMARELO, '2500 a 2999g': VERDE, '3000 a 3999g': VERDE, '4000g e mais': AMARELO, 'Ign': '#CCCCCC'}
 
 fig_peso = go.Figure(data=[go.Bar(
-    x=list(dados_peso_ordenado.values()),
-    y=list(dados_peso_ordenado.keys()),
-    orientation='h',
-    marker=dict(color=[cores_peso.get(k, AZUL) for k in dados_peso_ordenado.keys()],
-                line=dict(color=BRANCO, width=1)),
-    text=[fmt(v) for v in dados_peso_ordenado.values()],
-    textposition='outside',
-    textfont=dict(size=12, color=GRAFITE),
+    x=list(dados_peso_ordenado.values()), y=list(dados_peso_ordenado.keys()), orientation='h',
+    marker=dict(color=[cores_peso.get(k, AZUL) for k in dados_peso_ordenado.keys()], line=dict(color=BRANCO, width=1)),
+    text=[fmt(v) for v in dados_peso_ordenado.values()], textposition='outside', textfont=dict(size=12, color=GRAFITE),
     hovertemplate='<b>%{y}</b><br>%{x:,.0f} bebes<extra></extra>'
 )])
-fig_peso.update_layout(
-    height=380,
-    margin=dict(l=20, r=80, t=20, b=40),
-    xaxis_title="Numero de Bebes", yaxis_title="",
-    plot_bgcolor=BRANCO, paper_bgcolor=BRANCO,
-    font=dict(family="Arial", size=12, color=GRAFITE),
-    separators=',.',
-    xaxis=dict(gridcolor='#EEEEEE', linecolor='#DDDDDD'),
-    yaxis=dict(showgrid=False, linecolor='#DDDDDD'),
-    showlegend=False
-)
+fig_peso.update_layout(height=380, margin=dict(l=20, r=80, t=20, b=40),
+    xaxis_title="Numero de Bebes", yaxis_title="", plot_bgcolor=BRANCO, paper_bgcolor=BRANCO,
+    font=dict(family="Arial", size=12, color=GRAFITE), separators=',.',
+    xaxis=dict(gridcolor='#EEEEEE', linecolor='#DDDDDD', tickfont=dict(color='#333333', size=12)),
+    yaxis=dict(showgrid=False, linecolor='#DDDDDD', tickfont=dict(color='#333333', size=12)),
+    showlegend=False)
 st.plotly_chart(fig_peso, use_container_width=True)
 
-# ==========================================
 # IDADE DAS MAES
-# ==========================================
 st.markdown('<div class="secao-titulo">Faixa Etaria das Maes</div>', unsafe_allow_html=True)
-
 labels_idade = list(dados['por_idade_mae'].keys())
 valores_idade = list(dados['por_idade_mae'].values())
 
 fig_idade = go.Figure(data=[go.Bar(
     x=labels_idade, y=valores_idade,
     marker=dict(color=AZUL, line=dict(color=BRANCO, width=1)),
-    text=[fmt(v) for v in valores_idade],
-    textposition='outside',
-    textfont=dict(size=12, color=GRAFITE),
+    text=[fmt(v) for v in valores_idade], textposition='outside', textfont=dict(size=12, color=GRAFITE),
     hovertemplate='<b>%{x}</b><br>%{y:,.0f} maes<extra></extra>'
 )])
-fig_idade.update_layout(
-    height=400,
-    margin=dict(l=20, r=20, t=40, b=40),
+fig_idade.update_layout(height=400, margin=dict(l=20, r=20, t=40, b=40),
     xaxis_title="Faixa Etaria", yaxis_title="Numero de Maes",
     plot_bgcolor=BRANCO, paper_bgcolor=BRANCO,
-    font=dict(family="Arial", size=12, color=GRAFITE),
-    separators=',.',
-    xaxis=dict(gridcolor='#EEEEEE', linecolor='#DDDDDD'),
-    yaxis=dict(gridcolor='#EEEEEE', linecolor='#DDDDDD'),
-    showlegend=False
-)
+    font=dict(family="Arial", size=12, color=GRAFITE), separators=',.',
+    xaxis=dict(gridcolor='#EEEEEE', linecolor='#DDDDDD', tickfont=dict(color='#333333', size=12)),
+    yaxis=dict(gridcolor='#EEEEEE', linecolor='#DDDDDD', tickfont=dict(color='#333333', size=12)),
+    showlegend=False)
 st.plotly_chart(fig_idade, use_container_width=True)
 
-# ==========================================
 # GESTACAO
-# ==========================================
 if 'por_gestacao' in dados:
     st.markdown('<div class="secao-titulo">Duracao da Gestacao</div>', unsafe_allow_html=True)
-
     labels_gest = list(dados['por_gestacao'].keys())
     valores_gest = list(dados['por_gestacao'].values())
 
     fig_gest = go.Figure(data=[go.Bar(
         x=valores_gest, y=labels_gest, orientation='h',
         marker=dict(color=VERDE, line=dict(color=BRANCO, width=1)),
-        text=[fmt(v) for v in valores_gest],
-        textposition='outside',
-        textfont=dict(size=12, color=GRAFITE),
+        text=[fmt(v) for v in valores_gest], textposition='outside', textfont=dict(size=12, color=GRAFITE),
         hovertemplate='<b>%{y}</b><br>%{x:,.0f} bebes<extra></extra>'
     )])
-    fig_gest.update_layout(
-        height=350,
-        margin=dict(l=20, r=80, t=20, b=40),
-        xaxis_title="Numero de Bebes", yaxis_title="",
-        plot_bgcolor=BRANCO, paper_bgcolor=BRANCO,
-        font=dict(family="Arial", size=12, color=GRAFITE),
-        separators=',.',
-        xaxis=dict(gridcolor='#EEEEEE', linecolor='#DDDDDD'),
-        yaxis=dict(showgrid=False, linecolor='#DDDDDD'),
-        showlegend=False
-    )
+    fig_gest.update_layout(height=350, margin=dict(l=20, r=80, t=20, b=40),
+        xaxis_title="Numero de Bebes", yaxis_title="", plot_bgcolor=BRANCO, paper_bgcolor=BRANCO,
+        font=dict(family="Arial", size=12, color=GRAFITE), separators=',.',
+        xaxis=dict(gridcolor='#EEEEEE', linecolor='#DDDDDD', tickfont=dict(color='#333333', size=12)),
+        yaxis=dict(showgrid=False, linecolor='#DDDDDD', tickfont=dict(color='#333333', size=12)),
+        showlegend=False)
     st.plotly_chart(fig_gest, use_container_width=True)
 
-# ==========================================
 # INDICADORES RESUMIDOS
-# ==========================================
 st.markdown('<div class="secao-titulo">Indicadores Resumidos</div>', unsafe_allow_html=True)
-
 col1, col2, col3 = st.columns(3)
 
 with col1:
@@ -926,9 +681,7 @@ with col3:
     st.markdown("<br>", unsafe_allow_html=True)
     kpi_card("Media Anual", fmt(media_anual))
 
-# ==========================================
 # RODAPE
-# ==========================================
 st.markdown(f"""
 <div class="rodape-inst">
     <strong>Fonte dos dados:</strong> SINASC - Sistema de Informacao sobre Nascidos Vivos<br>
