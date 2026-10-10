@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Painel de Nascidos Vivos - Observatório da Primeira Infância de Caucaia
-Versão final - tabela em HTML puro para garantir estilo profissional
+Versão final - tabela em HTML puro sem indentação
 """
 
 import streamlit as st
@@ -36,39 +36,18 @@ st.set_page_config(
 # ==========================================
 st.markdown("""
 <style>
-    /* Esconder cabecalho */
     header[data-testid="stHeader"] { display: none !important; }
-    
-    /* Esconder menu hamburguer */
     #MainMenu { display: none !important; }
-    
-    /* Esconder rodape */
     footer { display: none !important; }
-    
-    /* Esconder botao Deploy */
     .stDeployButton { display: none !important; }
-    
-    /* Esconder toolbar */
     div[data-testid="stToolbar"] { display: none !important; }
-    
-    /* Esconder badge do viewer */
     div[data-testid="stStatusWidget"] { display: none !important; }
-    
-    /* Esconder "viewer badge" */
     .viewerBadge_container__1QSob { display: none !important; }
     .viewerBadge_link__1S137 { display: none !important; }
-    
-    /* Esconder qualquer icone flutuante */
     div[class*="viewerBadge"] { display: none !important; }
     div[class*="StatusWidget"] { display: none !important; }
-    
-    /* Ajustar padding do topo */
     .block-container { padding-top: 1rem !important; }
-    
-    /* Esconder anchor links */
     .stApp a.anchor-link { display: none !important; }
-    
-    /* Esconder icone da coroa (premium) */
     a[href*="streamlit.io/cloud"] { display: none !important; }
     iframe[title*="streamlit"] { display: none !important; }
 </style>
@@ -100,23 +79,23 @@ def kpi_card(titulo, valor, subtitulo=None, cor=AZUL, cor_texto=None):
     cor_texto = cor_texto or cor
     sub_html = f'<div style="font-size:12px;color:#888;margin-top:8px;">{subtitulo}</div>' if subtitulo else ''
     st.markdown(f"""
-    <div style="background:white;border-left:4px solid {cor};padding:18px 22px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.06);height:100%;">
-        <div style="font-size:13px;color:#666;margin-bottom:8px;font-weight:500;">{titulo}</div>
-        <div style="font-size:26px;font-weight:700;color:{cor_texto};line-height:1.2;">{valor}</div>
-        {sub_html}
-    </div>
-    """, unsafe_allow_html=True)
+<div style="background:white;border-left:4px solid {cor};padding:18px 22px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.06);height:100%;">
+<div style="font-size:13px;color:#666;margin-bottom:8px;font-weight:500;">{titulo}</div>
+<div style="font-size:26px;font-weight:700;color:{cor_texto};line-height:1.2;">{valor}</div>
+{sub_html}
+</div>
+""", unsafe_allow_html=True)
 
 
 def kpi_destaque(titulo, valor, subtitulo=None):
     sub_html = f'<div style="font-size:13px;color:#C8D4E8;margin-top:8px;">{subtitulo}</div>' if subtitulo else ''
     st.markdown(f"""
-    <div style="background:{AZUL};color:white;padding:24px 28px;border-radius:8px;">
-        <div style="font-size:13px;color:#C8D4E8;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">{titulo}</div>
-        <div style="font-size:42px;font-weight:700;line-height:1;">{valor}</div>
-        {sub_html}
-    </div>
-    """, unsafe_allow_html=True)
+<div style="background:{AZUL};color:white;padding:24px 28px;border-radius:8px;">
+<div style="font-size:13px;color:#C8D4E8;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">{titulo}</div>
+<div style="font-size:42px;font-weight:700;line-height:1;">{valor}</div>
+{sub_html}
+</div>
+""", unsafe_allow_html=True)
 
 
 # ==========================================
@@ -443,11 +422,11 @@ col_header, col_btn = st.columns([3, 1])
 
 with col_header:
     st.markdown(f"""
-    <div class="header-inst">
-        <h1>Painel de Nascidos Vivos - Caucaia</h1>
-        <p>Observatorio da Primeira Infancia - Periodo historico: {periodo_txt} - Fonte: SINASC</p>
-    </div>
-    """, unsafe_allow_html=True)
+<div class="header-inst">
+<h1>Painel de Nascidos Vivos - Caucaia</h1>
+<p>Observatorio da Primeira Infancia - Periodo historico: {periodo_txt} - Fonte: SINASC</p>
+</div>
+""", unsafe_allow_html=True)
 
 with col_btn:
     st.markdown("<br>", unsafe_allow_html=True)
@@ -518,9 +497,9 @@ st.plotly_chart(fig_hist, use_container_width=True)
 
 st.markdown(f"""
 <div class="info-projecao">
-    <strong>Nota metodologica:</strong> A projecao foi calculada por <strong>regressao linear</strong> 
-    com base nos dados historicos de {anos_hist[0]} a {anos_hist[-1]}. 
-    Os cenarios otimista e pessimista representam o intervalo de confianca de 95%.
+<strong>Nota metodologica:</strong> A projecao foi calculada por <strong>regressao linear</strong> 
+com base nos dados historicos de {anos_hist[0]} a {anos_hist[-1]}. 
+Os cenarios otimista e pessimista representam o intervalo de confianca de 95%.
 </div>
 """, unsafe_allow_html=True)
 
@@ -541,79 +520,63 @@ with col4:
     kpi_card("Projecao 2030", fmt(valores_projetados[-1]))
 
 # ==========================================
-# TABELA EM HTML PURO (GARANTE CORES E ALINHAMENTO)
+# TABELA EM HTML PURO (SEM INDENTACAO)
 # ==========================================
 st.markdown("**Detalhamento por Ano:**")
 
-html_tabela = """
+# CSS da tabela
+css_tabela = """
 <style>
-    .tabela-projecao {
-        width: 100%;
-        border-collapse: collapse;
-        font-family: 'Arial', sans-serif;
-        font-size: 14px;
-        margin-top: 10px;
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-    }
-    .tabela-projecao th {
-        background-color: #16305A;
-        color: #FFFFFF;
-        font-weight: bold;
-        padding: 12px 15px;
-        text-align: center;
-        border: 1px solid #1F3A6E;
-    }
-    .tabela-projecao th:first-child {
-        text-align: left;
-    }
-    .tabela-projecao td {
-        padding: 10px 15px;
-        color: #333333;
-        background-color: #FFFFFF;
-        border-bottom: 1px solid #E0E0E0;
-        text-align: center;
-    }
-    .tabela-projecao td:first-child {
-        text-align: left;
-        font-weight: bold;
-        color: #1F3A6E;
-    }
-    .tabela-projecao tr:nth-child(even) td {
-        background-color: #F9F9F9;
-    }
-    .tabela-projecao tr:hover td {
-        background-color: #F0F4F8;
-    }
+.tabela-projecao {
+width: 100%;
+border-collapse: collapse;
+font-family: 'Arial', sans-serif;
+font-size: 14px;
+margin-top: 10px;
+border-radius: 8px;
+overflow: hidden;
+box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+.tabela-projecao th {
+background-color: #16305A;
+color: #FFFFFF;
+font-weight: bold;
+padding: 12px 15px;
+text-align: center;
+border: 1px solid #1F3A6E;
+}
+.tabela-projecao th:first-child {
+text-align: left;
+}
+.tabela-projecao td {
+padding: 10px 15px;
+color: #333333;
+background-color: #FFFFFF;
+border-bottom: 1px solid #E0E0E0;
+text-align: center;
+}
+.tabela-projecao td:first-child {
+text-align: left;
+font-weight: bold;
+color: #1F3A6E;
+}
+.tabela-projecao tr:nth-child(even) td {
+background-color: #F9F9F9;
+}
+.tabela-projecao tr:hover td {
+background-color: #F0F4F8;
+}
 </style>
-
-<table class="tabela-projecao">
-    <thead>
-        <tr>
-            <th>Ano</th>
-            <th>Cenário Pessimista</th>
-            <th>Projeção Realista</th>
-            <th>Cenário Otimista</th>
-        </tr>
-    </thead>
-    <tbody>
 """
+st.markdown(css_tabela, unsafe_allow_html=True)
+
+# Construindo o HTML SEM INDENTACAO
+html_tabela = '<table class="tabela-projecao"><thead><tr><th>Ano</th><th>Cenario Pessimista</th><th>Projecao Realista</th><th>Cenario Otimista</th></tr></thead><tbody>'
 
 for i, ano in enumerate(anos_projecao):
-    html_tabela += f"""
-        <tr>
-            <td>{ano}</td>
-            <td>{fmt(valores_pessimista[i])}</td>
-            <td>{fmt(valores_projetados[i])}</td>
-            <td>{fmt(valores_otimista[i])}</td>
-        </tr>
-    """
+    html_tabela += f'<tr><td>{ano}</td><td>{fmt(valores_pessimista[i])}</td><td>{fmt(valores_projetados[i])}</td><td>{fmt(valores_otimista[i])}</td></tr>'
 
-html_tabela += """
-    </tbody>
-</table>
-"""
+html_tabela += '</tbody></table>'
 
 st.markdown(html_tabela, unsafe_allow_html=True)
 
@@ -759,9 +722,9 @@ with col3:
 # RODAPE
 st.markdown(f"""
 <div class="rodape-inst">
-    <strong>Fonte dos dados:</strong> SINASC - Sistema de Informacao sobre Nascidos Vivos<br>
-    <strong>Observatorio da Primeira Infancia de Caucaia</strong><br>
-    Prefeitura Municipal de Caucaia - Secretaria Municipal de Saude<br>
-    <em>Ultima atualizacao: {datetime.now().strftime('%d/%m/%Y as %H:%M')}</em>
+<strong>Fonte dos dados:</strong> SINASC - Sistema de Informacao sobre Nascidos Vivos<br>
+<strong>Observatorio da Primeira Infancia de Caucaia</strong><br>
+Prefeitura Municipal de Caucaia - Secretaria Municipal de Saude<br>
+<em>Ultima atualizacao: {datetime.now().strftime('%d/%m/%Y as %H:%M')}</em>
 </div>
 """, unsafe_allow_html=True)
