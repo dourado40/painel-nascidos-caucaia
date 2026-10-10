@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Painel de Nascidos Vivos - Observatório da Primeira Infância de Caucaia
-Versão final - legendas visíveis e ícones escondidos
+Versão final - tabela customizada e legendas visíveis
 """
 
 import streamlit as st
@@ -32,40 +32,21 @@ st.set_page_config(
 )
 
 # ==========================================
-# CSS - ESCONDER BARRA E ICONES DO STREAMLIT
+# CSS - ESCONDER BARRA E ICONES
 # ==========================================
 st.markdown("""
 <style>
-    /* Esconder cabecalho */
     header[data-testid="stHeader"] { display: none !important; }
-    
-    /* Esconder menu hamburguer */
     #MainMenu { display: none !important; }
-    
-    /* Esconder rodape */
     footer { display: none !important; }
-    
-    /* Esconder botao Deploy */
     .stDeployButton { display: none !important; }
-    
-    /* Esconder toolbar */
     div[data-testid="stToolbar"] { display: none !important; }
-    
-    /* Esconder badge do viewer (icone streamlit) */
     div[data-testid="stStatusWidget"] { display: none !important; }
-    
-    /* Esconder "viewer badge" (icone com coroa) */
     .viewerBadge_container__1QSob { display: none !important; }
     .viewerBadge_link__1S137 { display: none !important; }
-    
-    /* Esconder qualquer icone no canto inferior direito */
     div[class*="viewerBadge"] { display: none !important; }
     div[class*="StatusWidget"] { display: none !important; }
-    
-    /* Ajustar padding */
     .block-container { padding-top: 1rem !important; }
-    
-    /* Esconder anchor links */
     .stApp a.anchor-link { display: none !important; }
 </style>
 """, unsafe_allow_html=True)
@@ -535,16 +516,45 @@ with col3:
 with col4:
     kpi_card("Projecao 2030", fmt(valores_projetados[-1]))
 
+# ==========================================
+# TABELA CUSTOMIZADA (Ano esquerda, outras centralizadas)
+# ==========================================
 st.markdown("**Detalhamento por Ano:**")
-tabela_projecao = pd.DataFrame({
-    'Ano': anos_projecao,
-    'Cenario Pessimista': [fmt(v) for v in valores_pessimista],
-    'Projecao Realista': [fmt(v) for v in valores_projetados],
-    'Cenario Otimista': [fmt(v) for v in valores_otimista],
-})
-st.dataframe(tabela_projecao, use_container_width=True, hide_index=True)
 
+linhas_html = ""
+for i, ano in enumerate(anos_projecao):
+    linhas_html += f"""
+        <tr style="border-bottom: 1px solid #EEEEEE;">
+            <td style="padding: 12px 16px; text-align: left; color: #333333; font-weight: 600;">{ano}</td>
+            <td style="padding: 12px 16px; text-align: center; color: #333333;">{fmt(valores_pessimista[i])}</td>
+            <td style="padding: 12px 16px; text-align: center; color: #1F3A6E; font-weight: 700; background: #E8F4FD;">{fmt(valores_projetados[i])}</td>
+            <td style="padding: 12px 16px; text-align: center; color: #333333;">{fmt(valores_otimista[i])}</td>
+        </tr>
+    """
+
+tabela_html = f"""
+<div style="overflow-x: auto; margin-top: 12px;">
+    <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.06);">
+        <thead>
+            <tr style="background: {AZUL}; color: white;">
+                <th style="padding: 14px 16px; text-align: left; font-weight: 600; font-size: 14px;">Ano</th>
+                <th style="padding: 14px 16px; text-align: center; font-weight: 600; font-size: 14px;">Cenario Pessimista</th>
+                <th style="padding: 14px 16px; text-align: center; font-weight: 600; font-size: 14px;">Projecao Realista</th>
+                <th style="padding: 14px 16px; text-align: center; font-weight: 600; font-size: 14px;">Cenario Otimista</th>
+            </tr>
+        </thead>
+        <tbody>
+            {linhas_html}
+        </tbody>
+    </table>
+</div>
+"""
+
+st.markdown(tabela_html, unsafe_allow_html=True)
+
+# ==========================================
 # SEXO E PARTO
+# ==========================================
 col1, col2 = st.columns(2)
 
 with col1:
