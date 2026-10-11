@@ -42,11 +42,12 @@ st.markdown("""
         color: white !important;
         border: none !important;
         border-radius: 8px !important;
-        padding: 14px 20px !important;
+        padding: 12px 20px !important;
         font-weight: 700 !important;
-        font-size: 15px !important;
+        font-size: 14px !important;
         transition: all 0.2s !important;
         box-shadow: 0 4px 12px rgba(31, 58, 110, 0.25) !important;
+        margin-top: 4px !important;
     }
     div.stButton > button[kind="primary"]:hover {
         background-color: #16305A !important;
@@ -88,7 +89,7 @@ with col1:
     st.markdown(f"""
     <div style="background: white; border-left: 4px solid {AZUL}; padding: 24px; 
                 border-radius: 8px; box-shadow: 0 4px 12px rgba(31, 58, 110, 0.1); 
-                height: 200px; display: flex; flex-direction: column; justify-content: space-between;">
+                height: 250px; display: flex; flex-direction: column; justify-content: space-between;">
         <div>
             <div style="font-size: 38px; margin-bottom: 12px;">👶</div>
             <h3 style="color: {AZUL}; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
@@ -108,7 +109,7 @@ with col1:
         </div>
     </div>
     """, unsafe_allow_html=True)
-    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("<div style='margin-top: 8px;'></div>", unsafe_allow_html=True)
     if st.button("📊 Acessar Painel →", key="btn_card_nascidos", use_container_width=True, type="primary"):
         st.switch_page("pages/1_Nascidos_Vivos.py")
 
