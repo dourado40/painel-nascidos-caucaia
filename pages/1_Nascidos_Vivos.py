@@ -2,7 +2,8 @@
 """
 Painel de Nascidos Vivos - Observatório da Primeira Infância de Caucaia
 Página interna: pages/1_Nascidos_Vivos.py
-Hover otimizado com hoverdistance e spikedistance ilimitados.
+Projeção estendida até 2031 (final do PMPI).
+Histórico e projeção separados corretamente no tooltip.
 """
 
 import streamlit as st
@@ -57,7 +58,6 @@ CINZA = "#F5F6F8"
 GRAFITE = "#333333"
 BRANCO = "#FFFFFF"
 
-# ✅ CONFIGURAÇÃO GLOBAL — hoverdistance ILIMITADO
 PLOTLY_CONFIG = {
     'staticPlot': False,
     'displayModeBar': False,
@@ -200,7 +200,6 @@ def gerar_relatorio_pdf():
     cor_azul = colors.HexColor(AZUL)
     cor_grafite = colors.HexColor(GRAFITE)
     titulo = ParagraphStyle('Titulo', parent=styles['Heading1'], fontSize=20, textColor=cor_azul, spaceAfter=20, alignment=TA_CENTER, fontName='Helvetica-Bold')
-    subtitulo = ParagraphStyle('Subtitulo', parent=styles['Heading2'], fontSize=14, textColor=cor_azul, spaceBefore=16, spaceAfter=10, fontName='Helvetica-Bold')
     corpo = ParagraphStyle('Corpo', parent=styles['BodyText'], fontSize=11, textColor=cor_grafite, spaceAfter=8, alignment=TA_JUSTIFY, leading=15)
 
     story.append(Paragraph("PREFEITURA MUNICIPAL DE CAUCAIA", titulo))
@@ -265,7 +264,7 @@ with col_kpi3:
 
 
 # ==========================================
-# EVOLUCAO (hover x unified com spikedistance)
+# EVOLUCAO — Histórico e Projeção SEPARADOS
 # ==========================================
 st.markdown(f'<div class="secao-titulo">Evolução Histórica e Projeção (2014-{ANO_FINAL_PMPI})</div>', unsafe_allow_html=True)
 st.markdown('<div class="secao-subtitulo">Passe o mouse sobre o gráfico para ver o número de nascidos em cada ano. A linha vertical marca o início da projeção.</div>', unsafe_allow_html=True)
@@ -274,27 +273,53 @@ y_min = min(min(valores_hist), min(valores_pessimista)) - 300
 y_max = max(max(valores_hist), max(valores_otimista)) + 300
 
 fig_hist = go.Figure()
+
+# =============================================
+# HISTÓRICO — Só mostra valores para anos_hist
+# =============================================
 fig_hist.add_trace(go.Scatter(
-    x=anos_hist, y=valores_hist, mode='lines+markers', name='Histórico',
+    x=anos_hist, y=valores_hist,
+    mode='lines+markers', name='Histórico',
     line=dict(color=AZUL, width=3),
     marker=dict(size=14, color=AZUL, line=dict(color=BRANCO, width=2)),
     hovertemplate='<b>📅 Ano %{x}</b><br><b>👶 Nascidos:</b> %{y:,.0f}<extra></extra>'
 ))
+
+# =============================================
+# PROJEÇÕES — Separadas para não vazar para o passado
+# Cada trace começa em 2025 (com None) e só tem valores a partir de 2026
+# =============================================
+x_com_2025 = [2025] + anos_projecao  # [2025, 2026, 2027, ..., 2031]
+
+# Realista
+y_realista_com_2025 = [None] + valores_projetados
 fig_hist.add_trace(go.Scatter(
-    x=anos_projecao, y=valores_projetados, mode='lines+markers', name='Projeção Realista',
+    x=x_com_2025, y=y_realista_com_2025,
+    mode='lines+markers', name='Projeção Realista',
     line=dict(color=AMARELO, width=3, dash='dash'),
     marker=dict(size=14, color=AMARELO, symbol='diamond', line=dict(color=BRANCO, width=2)),
-    hovertemplate='<b>📊 Realista:</b> %{y:,.0f}<extra></extra>'
+    hovertemplate='<b>📊 Realista:</b> %{y:,.0f}<extra></extra>',
+    connectgaps=False
 ))
+
+# Otimista
+y_otimista_com_2025 = [None] + valores_otimista
 fig_hist.add_trace(go.Scatter(
-    x=anos_projecao, y=valores_otimista, mode='lines', name='Cenário Otimista',
+    x=x_com_2025, y=y_otimista_com_2025,
+    mode='lines', name='Cenário Otimista',
     line=dict(color=VERDE, width=1.5, dash='dot'),
-    hovertemplate='<b>📈 Otimista:</b> %{y:,.0f}<extra></extra>'
+    hovertemplate='<b>📈 Otimista:</b> %{y:,.0f}<extra></extra>',
+    connectgaps=False
 ))
+
+# Pessimista
+y_pessimista_com_2025 = [None] + valores_pessimista
 fig_hist.add_trace(go.Scatter(
-    x=anos_projecao, y=valores_pessimista, mode='lines', name='Cenário Pessimista',
+    x=x_com_2025, y=y_pessimista_com_2025,
+    mode='lines', name='Cenário Pessimista',
     line=dict(color=CORAL, width=1.5, dash='dot'),
-    hovertemplate='<b>📉 Pessimista:</b> %{y:,.0f}<extra></extra>'
+    hovertemplate='<b>📉 Pessimista:</b> %{y:,.0f}<extra></extra>',
+    connectgaps=False
 ))
 
 fig_hist.add_vline(x=2025.5, line_width=2, line_dash="solid", line_color="#999999",
@@ -361,7 +386,7 @@ st.markdown(css_tabela, unsafe_allow_html=True)
 
 html_tabela = '<table class="tabela-projecao"><thead><tr><th>Ano</th><th>Cenário Pessimista</th><th>Projeção Realista</th><th>Cenário Otimista</th></tr></thead><tbody>'
 for i, ano in enumerate(anos_projecao):
-    html_tabela += f'<tr><td>{ano}</td><td>{fmt(valores_pessimista[i])}</td><td>{fmt(valores_projetados[i])}</td><td>{fmt(valores_otimistas[i] if False else valores_otimista[i])}</td></tr>'
+    html_tabela += f'<tr><td>{ano}</td><td>{fmt(valores_pessimista[i])}</td><td>{fmt(valores_projetados[i])}</td><td>{fmt(valores_otimista[i])}</td></tr>'
 html_tabela += '</tbody></table>'
 st.markdown(html_tabela, unsafe_allow_html=True)
 
@@ -414,7 +439,7 @@ with col2:
 
 
 # ==========================================
-# PRE-NATAL (hover closest ilimitado)
+# PRE-NATAL
 # ==========================================
 st.markdown('<div class="secao-titulo">Cobertura de Pré-Natal</div>', unsafe_allow_html=True)
 st.markdown('<div class="secao-subtitulo">Número de consultas de pré-natal realizadas pelas mães. O Ministério da Saúde recomenda no mínimo 6 consultas, sendo ideal 7 ou mais.</div>', unsafe_allow_html=True)
