@@ -2,7 +2,7 @@
 """
 Painel de Nascidos Vivos - Observatório da Primeira Infância de Caucaia
 Página interna: pages/1_Nascidos_Vivos.py
-Gráficos 100% estáticos.
+Gráficos estáticos com layout harmonioso.
 """
 
 import streamlit as st
@@ -58,10 +58,10 @@ CINZA = "#F5F6F8"
 GRAFITE = "#333333"
 BRANCO = "#FFFFFF"
 
-# ✅ CONFIGURAÇÃO GLOBAL — GRÁFICOS 100% ESTÁTICOS
+# ✅ CONFIGURAÇÃO GLOBAL — GRÁFICOS ESTÁTICOS
 PLOTLY_CONFIG = {
-    'staticPlot': True,           # desativa TODA interatividade (hover, zoom, pan)
-    'displayModeBar': False,      # esconde a barra de ferramentas
+    'staticPlot': True,
+    'displayModeBar': False,
     'displaylogo': False,
     'scrollZoom': False,
 }
@@ -375,9 +375,13 @@ with col_kpi3:
 
 
 # ==========================================
-# EVOLUCAO E PROJECAO
+# EVOLUCAO E PROJECAO (COM ESPACO NO TOPO)
 # ==========================================
 st.markdown('<div class="secao-titulo">Evolução Histórica e Projeção (2014-2030)</div>', unsafe_allow_html=True)
+
+# Calcula range Y com folga para não cortar
+y_min = min(min(valores_hist), min(valores_pessimista)) - 300
+y_max = max(max(valores_hist), max(valores_otimista)) + 300
 
 fig_hist = go.Figure()
 fig_hist.add_trace(go.Scatter(x=anos_hist, y=valores_hist, mode='lines+markers', name='Histórico',
@@ -395,15 +399,19 @@ fig_hist.add_vline(x=2025.5, line_width=2, line_dash="solid", line_color="#99999
     annotation_font=dict(size=12, color=GRAFITE, family="Arial"))
 
 fig_hist.update_layout(
-    height=450, margin=dict(l=20, r=20, t=50, b=40),
+    height=500,
+    margin=dict(l=60, r=40, t=80, b=60),
     xaxis_title="Ano", yaxis_title="Número de Nascidos",
     plot_bgcolor=BRANCO, paper_bgcolor=BRANCO,
     font=dict(family="Arial", size=13, color=GRAFITE),
     separators=',.',
-    legend=dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5,
+    legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5,
                 font=dict(size=13, color=GRAFITE)),
-    xaxis=dict(showgrid=False, linecolor='#DDDDDD', dtick=1, tickfont=dict(color='#333333', size=13)),
-    yaxis=dict(gridcolor='#EEEEEE', linecolor='#DDDDDD', tickfont=dict(color='#333333', size=13))
+    xaxis=dict(showgrid=False, linecolor='#DDDDDD', dtick=1,
+               tickfont=dict(color='#333333', size=13)),
+    yaxis=dict(gridcolor='#EEEEEE', linecolor='#DDDDDD',
+               tickfont=dict(color='#333333', size=13),
+               range=[y_min, y_max])
 )
 st.plotly_chart(fig_hist, use_container_width=True, config=PLOTLY_CONFIG)
 
@@ -464,7 +472,7 @@ with col1:
         textfont=dict(size=14, color=BRANCO, family="Arial"),
         insidetextorientation='horizontal'
     )])
-    fig_sexo.update_layout(height=380, margin=dict(l=20, r=20, t=20, b=20),
+    fig_sexo.update_layout(height=380, margin=dict(l=20, r=20, t=30, b=30),
         paper_bgcolor=BRANCO,
         showlegend=True,
         legend=dict(orientation="h", yanchor="bottom", y=-0.05, xanchor="center", x=0.5,
@@ -484,7 +492,7 @@ with col2:
         textfont=dict(size=14, color=BRANCO, family="Arial"),
         insidetextorientation='horizontal'
     )])
-    fig_parto.update_layout(height=380, margin=dict(l=20, r=20, t=20, b=20),
+    fig_parto.update_layout(height=380, margin=dict(l=20, r=20, t=30, b=30),
         paper_bgcolor=BRANCO,
         showlegend=True,
         legend=dict(orientation="h", yanchor="bottom", y=-0.05, xanchor="center", x=0.5,
@@ -509,7 +517,7 @@ fig_prenatal = go.Figure(data=[go.Bar(
     textfont=dict(size=13, color=GRAFITE, family="Arial")
 )])
 fig_prenatal.update_layout(
-    height=320, margin=dict(l=20, r=100, t=20, b=40),
+    height=340, margin=dict(l=20, r=100, t=30, b=50),
     xaxis_title="Número de Mães", yaxis_title="",
     plot_bgcolor=BRANCO, paper_bgcolor=BRANCO,
     font=dict(family="Arial", size=13, color=GRAFITE),
@@ -539,7 +547,7 @@ fig_peso = go.Figure(data=[go.Bar(
     textfont=dict(size=13, color=GRAFITE, family="Arial")
 )])
 fig_peso.update_layout(
-    height=380, margin=dict(l=20, r=100, t=20, b=40),
+    height=400, margin=dict(l=20, r=100, t=30, b=50),
     xaxis_title="Número de Bebês", yaxis_title="",
     plot_bgcolor=BRANCO, paper_bgcolor=BRANCO,
     font=dict(family="Arial", size=13, color=GRAFITE),
@@ -566,7 +574,7 @@ fig_idade = go.Figure(data=[go.Bar(
     textfont=dict(size=13, color=GRAFITE, family="Arial")
 )])
 fig_idade.update_layout(
-    height=400, margin=dict(l=20, r=20, t=40, b=40),
+    height=420, margin=dict(l=60, r=40, t=40, b=60),
     xaxis_title="Faixa Etária", yaxis_title="Número de Mães",
     plot_bgcolor=BRANCO, paper_bgcolor=BRANCO,
     font=dict(family="Arial", size=13, color=GRAFITE),
@@ -595,7 +603,7 @@ if 'por_gestacao' in dados:
         textfont=dict(size=13, color=GRAFITE, family="Arial")
     )])
     fig_gest.update_layout(
-        height=350, margin=dict(l=20, r=100, t=20, b=40),
+        height=370, margin=dict(l=20, r=100, t=30, b=50),
         xaxis_title="Número de Bebês", yaxis_title="",
         plot_bgcolor=BRANCO, paper_bgcolor=BRANCO,
         font=dict(family="Arial", size=13, color=GRAFITE),
