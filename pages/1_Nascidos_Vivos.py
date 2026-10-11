@@ -3,7 +3,7 @@
 Painel de Nascidos Vivos - Observatório da Primeira Infância de Caucaia
 Página interna: pages/1_Nascidos_Vivos.py
 Projeção estendida até 2031 (final do PMPI).
-Tooltips unificados nos gráficos de barras.
+Tooltips otimizados com hoverdistance e range com folga.
 """
 
 import streamlit as st
@@ -59,7 +59,6 @@ CINZA = "#F5F6F8"
 GRAFITE = "#333333"
 BRANCO = "#FFFFFF"
 
-# ✅ CONFIGURAÇÃO GLOBAL — HOVER ATIVO, SEM INTERAÇÃO DE DRAG/ZOOM
 PLOTLY_CONFIG = {
     'staticPlot': False,
     'displayModeBar': False,
@@ -76,7 +75,6 @@ PLOTLY_CONFIG = {
     'hovermode': 'closest',
 }
 
-# Estilo padrão dos tooltips (aplicado globalmente)
 HOVERLABEL = dict(
     bgcolor=BRANCO,
     bordercolor=AZUL,
@@ -84,7 +82,6 @@ HOVERLABEL = dict(
     align="left",
 )
 
-# ✅ HORIZONTE DO PMPI
 ANO_FINAL_PMPI = 2031
 NUM_ANOS_PROJECAO = ANO_FINAL_PMPI - 2025
 
@@ -293,7 +290,7 @@ with col_kpi3:
 
 
 # ==========================================
-# EVOLUCAO E PROJECAO (LINHA - hover x unified)
+# EVOLUCAO E PROJECAO
 # ==========================================
 st.markdown(f'<div class="secao-titulo">Evolução Histórica e Projeção (2014-{ANO_FINAL_PMPI})</div>', unsafe_allow_html=True)
 st.markdown('<div class="secao-subtitulo">Passe o mouse sobre o gráfico para ver o número de nascidos em cada ano. A linha tracejada vertical marca o início da projeção.</div>', unsafe_allow_html=True)
@@ -348,6 +345,7 @@ fig_hist.update_layout(
     separators=',.',
     dragmode=False,
     hovermode='x unified',
+    hoverdistance=50,
     hoverlabel=HOVERLABEL,
     legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5,
                 font=dict(size=13, color=GRAFITE)),
@@ -402,7 +400,7 @@ st.markdown(html_tabela, unsafe_allow_html=True)
 
 
 # ==========================================
-# SEXO E PARTO (PIZZA - hover closest)
+# SEXO E PARTO (PIZZA)
 # ==========================================
 col1, col2 = st.columns(2)
 with col1:
@@ -420,7 +418,8 @@ with col1:
                       '<extra></extra>'
     )])
     fig_sexo.update_layout(height=380, margin=dict(l=20, r=20, t=30, b=30),
-        paper_bgcolor=BRANCO, dragmode=False, hoverlabel=HOVERLABEL,
+        paper_bgcolor=BRANCO, dragmode=False,
+        hovermode='closest', hoverdistance=100, hoverlabel=HOVERLABEL,
         showlegend=True,
         legend=dict(orientation="h", yanchor="bottom", y=-0.05, xanchor="center", x=0.5,
                     font=dict(size=13, color=GRAFITE)))
@@ -445,7 +444,8 @@ with col2:
                       '<extra></extra>'
     )])
     fig_parto.update_layout(height=380, margin=dict(l=20, r=20, t=30, b=30),
-        paper_bgcolor=BRANCO, dragmode=False, hoverlabel=HOVERLABEL,
+        paper_bgcolor=BRANCO, dragmode=False,
+        hovermode='closest', hoverdistance=100, hoverlabel=HOVERLABEL,
         showlegend=True,
         legend=dict(orientation="h", yanchor="bottom", y=-0.05, xanchor="center", x=0.5,
                     font=dict(size=13, color=GRAFITE)))
@@ -453,7 +453,7 @@ with col2:
 
 
 # ==========================================
-# PRE-NATAL (BARRAS HORIZONTAIS - hover y unified)
+# PRE-NATAL (hover closest + range com folga)
 # ==========================================
 st.markdown('<div class="secao-titulo">Cobertura de Pré-Natal</div>', unsafe_allow_html=True)
 st.markdown('<div class="secao-subtitulo">Número de consultas de pré-natal realizadas pelas mães. O Ministério da Saúde recomenda no mínimo 6 consultas, sendo ideal 7 ou mais.</div>', unsafe_allow_html=True)
@@ -489,12 +489,6 @@ for k in dados_prenatal_ordenado.keys():
     else:
         cores_prenatal.append(AZUL)
 
-# Texto do hover (para hovermode y unified)
-text_prenatal = []
-for i, k in enumerate(dados_prenatal_ordenado.keys()):
-    texto = f"{fmt(dados_prenatal_ordenado[k])} mães ({perc_prenatal[i]:.1f}%) — {contextos[i]}"
-    text_prenatal.append(texto)
-
 fig_prenatal = go.Figure(data=[go.Bar(
     x=list(dados_prenatal_ordenado.values()),
     y=labels_prenatal_descritivos,
@@ -504,22 +498,26 @@ fig_prenatal = go.Figure(data=[go.Bar(
     textposition='outside',
     textfont=dict(size=13, color=GRAFITE, family="Arial"),
     customdata=list(zip(perc_prenatal, contextos)),
-    hovertemplate='<b>👥 %{x:,.0f} mães</b> (%{customdata[0]:.1f}%)<br>' +
-                  '%{customdata[1]}<br>' +
+    hovertemplate='<b>📋 %{y}</b><br>' +
+                  '<b>👥 Mães:</b> %{x:,.0f}<br>' +
+                  '<b>📊 Percentual:</b> %{customdata[0]:.1f}%<br>' +
+                  '<b>%{customdata[1]}</b><br>' +
                   '<extra></extra>'
 )])
 fig_prenatal.update_layout(
-    height=380, margin=dict(l=20, r=100, t=30, b=50),
+    height=380, margin=dict(l=20, r=120, t=30, b=50),
     xaxis_title="Número de Mães", yaxis_title="",
     plot_bgcolor=BRANCO, paper_bgcolor=BRANCO,
     font=dict(family="Arial", size=13, color=GRAFITE),
     separators=',.',
     dragmode=False,
-    hovermode='y unified',
+    hovermode='closest',
+    hoverdistance=100,
     hoverlabel=HOVERLABEL,
     bargap=0.15,
     xaxis=dict(gridcolor='#EEEEEE', linecolor='#DDDDDD', fixedrange=True,
-               tickfont=dict(color='#333333', size=13)),
+               tickfont=dict(color='#333333', size=13),
+               range=[0, max(dados_prenatal_ordenado.values()) * 1.15]),
     yaxis=dict(showgrid=False, linecolor='#DDDDDD', fixedrange=True,
                tickfont=dict(color='#333333', size=13)),
     showlegend=False
@@ -530,7 +528,7 @@ st.markdown(f'<div class="info-projecao"><strong>Como interpretar:</strong> Barr
 
 
 # ==========================================
-# PESO AO NASCER (BARRAS HORIZONTAIS - hover y unified)
+# PESO AO NASCER (hover closest + range com folga)
 # ==========================================
 st.markdown('<div class="secao-titulo">Distribuição de Peso ao Nascer</div>', unsafe_allow_html=True)
 st.markdown('<div class="secao-subtitulo">Distribuição dos bebês por faixa de peso ao nascer (em gramas). Peso abaixo de 2.500 g é considerado baixo peso.</div>', unsafe_allow_html=True)
@@ -562,22 +560,26 @@ fig_peso = go.Figure(data=[go.Bar(
     textposition='outside',
     textfont=dict(size=13, color=GRAFITE, family="Arial"),
     customdata=list(zip(perc_peso, contextos_peso)),
-    hovertemplate='<b>👶 %{x:,.0f} bebês</b> (%{customdata[0]:.1f}%)<br>' +
-                  '%{customdata[1]}<br>' +
+    hovertemplate='<b>⚖️ %{y}</b><br>' +
+                  '<b>👶 Bebês:</b> %{x:,.0f}<br>' +
+                  '<b>📊 Percentual:</b> %{customdata[0]:.1f}%<br>' +
+                  '<b>%{customdata[1]}</b><br>' +
                   '<extra></extra>'
 )])
 fig_peso.update_layout(
-    height=400, margin=dict(l=20, r=100, t=30, b=50),
+    height=400, margin=dict(l=20, r=120, t=30, b=50),
     xaxis_title="Número de Bebês", yaxis_title="",
     plot_bgcolor=BRANCO, paper_bgcolor=BRANCO,
     font=dict(family="Arial", size=13, color=GRAFITE),
     separators=',.',
     dragmode=False,
-    hovermode='y unified',
+    hovermode='closest',
+    hoverdistance=100,
     hoverlabel=HOVERLABEL,
     bargap=0.15,
     xaxis=dict(gridcolor='#EEEEEE', linecolor='#DDDDDD', fixedrange=True,
-               tickfont=dict(color='#333333', size=13)),
+               tickfont=dict(color='#333333', size=13),
+               range=[0, max(dados_peso_ordenado.values()) * 1.15]),
     yaxis=dict(showgrid=False, linecolor='#DDDDDD', fixedrange=True,
                tickfont=dict(color='#333333', size=13)),
     showlegend=False
@@ -588,7 +590,7 @@ st.markdown(f'<div class="info-projecao"><strong>Como interpretar:</strong> Barr
 
 
 # ==========================================
-# FAIXA ETARIA DAS MAES (BARRAS VERTICAIS - hover x unified)
+# FAIXA ETARIA DAS MAES (barras verticais + range com folga)
 # ==========================================
 st.markdown('<div class="secao-titulo">Faixa Etária das Mães</div>', unsafe_allow_html=True)
 st.markdown('<div class="secao-subtitulo">Distribuição das mães por faixa etária no período histórico. Idade materna é um fator de risco para a gestação.</div>', unsafe_allow_html=True)
@@ -623,23 +625,27 @@ fig_idade = go.Figure(data=[go.Bar(
     textposition='outside',
     textfont=dict(size=13, color=GRAFITE, family="Arial"),
     customdata=list(zip(perc_idade, contextos_idade)),
-    hovertemplate='<b>👥 %{y:,.0f} mães</b> (%{customdata[0]:.1f}%)<br>' +
-                  '%{customdata[1]}<br>' +
+    hovertemplate='<b>👩 %{x}</b><br>' +
+                  '<b>👥 Mães:</b> %{y:,.0f}<br>' +
+                  '<b>📊 Percentual:</b> %{customdata[0]:.1f}%<br>' +
+                  '<b>%{customdata[1]}</b><br>' +
                   '<extra></extra>'
 )])
 fig_idade.update_layout(
-    height=420, margin=dict(l=60, r=40, t=40, b=60),
+    height=440, margin=dict(l=60, r=40, t=50, b=60),
     xaxis_title="Faixa Etária", yaxis_title="Número de Mães",
     plot_bgcolor=BRANCO, paper_bgcolor=BRANCO,
     font=dict(family="Arial", size=13, color=GRAFITE),
     separators=',.',
     dragmode=False,
-    hovermode='x unified',
+    hovermode='closest',
+    hoverdistance=100,
     hoverlabel=HOVERLABEL,
     xaxis=dict(showgrid=False, linecolor='#DDDDDD', fixedrange=True,
                tickfont=dict(color='#333333', size=13)),
     yaxis=dict(showgrid=False, showticklabels=True, linecolor='#DDDDDD', fixedrange=True,
-               tickfont=dict(color='#333333', size=13)),
+               tickfont=dict(color='#333333', size=13),
+               range=[0, max(valores_idade) * 1.15]),
     showlegend=False,
     bargap=0.15
 )
@@ -647,7 +653,7 @@ st.plotly_chart(fig_idade, use_container_width=True, config=PLOTLY_CONFIG)
 
 
 # ==========================================
-# GESTACAO (BARRAS HORIZONTAIS - hover y unified)
+# GESTACAO (hover closest + range com folga)
 # ==========================================
 if 'por_gestacao' in dados:
     st.markdown('<div class="secao-titulo">Duração da Gestação</div>', unsafe_allow_html=True)
@@ -676,22 +682,26 @@ if 'por_gestacao' in dados:
         textposition='outside',
         textfont=dict(size=13, color=GRAFITE, family="Arial"),
         customdata=list(zip(perc_gest, contextos_gest)),
-        hovertemplate='<b>👶 %{x:,.0f} bebês</b> (%{customdata[0]:.1f}%)<br>' +
-                      '%{customdata[1]}<br>' +
+        hovertemplate='<b>🤰 %{y}</b><br>' +
+                      '<b>👶 Bebês:</b> %{x:,.0f}<br>' +
+                      '<b>📊 Percentual:</b> %{customdata[0]:.1f}%<br>' +
+                      '<b>%{customdata[1]}</b><br>' +
                       '<extra></extra>'
     )])
     fig_gest.update_layout(
-        height=370, margin=dict(l=20, r=100, t=30, b=50),
+        height=370, margin=dict(l=20, r=120, t=30, b=50),
         xaxis_title="Número de Bebês", yaxis_title="",
         plot_bgcolor=BRANCO, paper_bgcolor=BRANCO,
         font=dict(family="Arial", size=13, color=GRAFITE),
         separators=',.',
         dragmode=False,
-        hovermode='y unified',
+        hovermode='closest',
+        hoverdistance=100,
         hoverlabel=HOVERLABEL,
         bargap=0.15,
         xaxis=dict(gridcolor='#EEEEEE', linecolor='#DDDDDD', fixedrange=True,
-                   tickfont=dict(color='#333333', size=13)),
+                   tickfont=dict(color='#333333', size=13),
+                   range=[0, max(valores_gest) * 1.15]),
         yaxis=dict(showgrid=False, linecolor='#DDDDDD', fixedrange=True,
                    tickfont=dict(color='#333333', size=13)),
         showlegend=False
