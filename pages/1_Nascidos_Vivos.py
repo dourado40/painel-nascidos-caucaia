@@ -2,8 +2,8 @@
 """
 Painel de Nascidos Vivos - Observatório da Primeira Infância de Caucaia
 Página interna: pages/1_Nascidos_Vivos.py
-Tooltip do gráfico de evolução: histórico APENAS mostra histórico,
-projeção APENAS mostra projeção.
+Tooltip do gráfico de evolução: histórico mostra apenas histórico,
+projeção mostra apenas projeção.
 """
 
 import streamlit as st
@@ -260,71 +260,48 @@ with col_kpi3:
 
 
 # ==========================================
-# EVOLUÇÃO — SOLUÇÃO DEFINITIVA
-# Cada trace de projeção recebe customdata que retorna None
-# para o período histórico, e o hovertemplate omite a linha se for None.
+# EVOLUÇÃO — SOLUÇÃO: hovermode='closest'
 # ==========================================
 st.markdown(f'<div class="secao-titulo">Evolução Histórica e Projeção (2014-{ANO_FINAL_PMPI})</div>', unsafe_allow_html=True)
-st.markdown('<div class="secao-subtitulo">Passe o mouse sobre o gráfico para ver o número de nascidos em cada ano. A linha vertical marca o início da projeção.</div>', unsafe_allow_html=True)
+st.markdown('<div class="secao-subtitulo">Passe o mouse sobre um ponto para ver o valor. Histórico mostra apenas dados reais; projeções mostram apenas estimativas.</div>', unsafe_allow_html=True)
 
 y_min = min(min(valores_hist), min(valores_pessimista)) - 300
 y_max = max(max(valores_hist), max(valores_otimista)) + 300
 
-# Junta todos os anos (histórico + projeção) para o eixo X
-todos_anos = sorted(set([int(a) for a in anos_hist] + anos_projecao))
-
-# Para cada trace, cria uma lista com None onde a trace não tem valor
-# Realista
-x_realista = [int(a) for a in anos_hist] + anos_projecao
-y_realista = valores_hist + [None] * len(anos_projecao)
-
-# Realista (não aparece no histórico)
-y_realista_proj = [None] * len(anos_hist) + valores_projetados
-
-# Otimista (não aparece no histórico)
-y_otimista_proj = [None] * len(anos_hist) + valores_otimista
-
-# Pessimista (não aparece no histórico)
-y_pessimista_proj = [None] * len(anos_hist) + valores_pessimista
-
 fig_hist = go.Figure()
 
-# TRACE 1: Histórico — aparece apenas onde tem valor
+# TRACE 1: Histórico — apenas nos anos históricos
 fig_hist.add_trace(go.Scatter(
-    x=x_realista, y=y_realista,
+    x=anos_hist, y=valores_hist,
     mode='lines+markers', name='Histórico',
     line=dict(color=AZUL, width=3),
     marker=dict(size=14, color=AZUL, line=dict(color=BRANCO, width=2)),
-    hovertemplate='<b>📅 Ano %{x}</b><br><b>👶 Histórico:</b> %{y:,.0f}<extra></extra>',
-    connectgaps=False,
+    hovertemplate='<b>📅 Ano %{x}</b><br><b>👶 Nascidos:</b> %{y:,.0f}<extra></extra>'
 ))
 
-# TRACE 2: Projeção Realista — aparece apenas a partir de 2026
+# TRACE 2: Projeção Realista — apenas nos anos de projeção
 fig_hist.add_trace(go.Scatter(
-    x=x_realista, y=y_realista_proj,
+    x=anos_projecao, y=valores_projetados,
     mode='lines+markers', name='Projeção Realista',
     line=dict(color=AMARELO, width=3, dash='dash'),
     marker=dict(size=14, color=AMARELO, symbol='diamond', line=dict(color=BRANCO, width=2)),
-    hovertemplate='<b>📊 Realista:</b> %{y:,.0f}<extra></extra>',
-    connectgaps=False,
+    hovertemplate='<b>📅 Ano %{x} (projeção)</b><br><b>📊 Realista:</b> %{y:,.0f}<extra></extra>'
 ))
 
 # TRACE 3: Otimista
 fig_hist.add_trace(go.Scatter(
-    x=x_realista, y=y_otimista_proj,
+    x=anos_projecao, y=valores_otimista,
     mode='lines', name='Cenário Otimista',
     line=dict(color=VERDE, width=1.5, dash='dot'),
-    hovertemplate='<b>📈 Otimista:</b> %{y:,.0f}<extra></extra>',
-    connectgaps=False,
+    hovertemplate='<b>📅 Ano %{x} (projeção)</b><br><b>📈 Otimista:</b> %{y:,.0f}<extra></extra>'
 ))
 
 # TRACE 4: Pessimista
 fig_hist.add_trace(go.Scatter(
-    x=x_realista, y=y_pessimista_proj,
+    x=anos_projecao, y=valores_pessimista,
     mode='lines', name='Cenário Pessimista',
     line=dict(color=CORAL, width=1.5, dash='dot'),
-    hovertemplate='<b>📉 Pessimista:</b> %{y:,.0f}<extra></extra>',
-    connectgaps=False,
+    hovertemplate='<b>📅 Ano %{x} (projeção)</b><br><b>📉 Pessimista:</b> %{y:,.0f}<extra></extra>'
 ))
 
 fig_hist.add_vline(x=2025.5, line_width=2, line_dash="solid", line_color="#999999",
@@ -338,7 +315,7 @@ fig_hist.update_layout(
     plot_bgcolor=BRANCO, paper_bgcolor=BRANCO,
     font=dict(family="Arial", size=13, color=GRAFITE),
     separators=',.',
-    hovermode='x unified',
+    hovermode='closest',
     hoverdistance=-1,
     spikedistance=-1,
     hoverlabel=HOVERLABEL,
