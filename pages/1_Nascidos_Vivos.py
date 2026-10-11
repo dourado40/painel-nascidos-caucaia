@@ -3,6 +3,7 @@
 Painel de Nascidos Vivos - Observatório da Primeira Infância de Caucaia
 Página interna: pages/1_Nascidos_Vivos.py
 Projeção estendida até 2031 (final do PMPI).
+Gráficos realmente estáticos + hover ativo.
 """
 
 import streamlit as st
@@ -45,6 +46,9 @@ st.markdown("""
     /* Esconde a barra de ferramentas do Plotly */
     .modebar { display: none !important; }
     .modebar-container { display: none !important; }
+
+    /* Bloqueia selecao/arrasto nos graficos */
+    .js-plotly-plot .plotly .draglayer { display: none !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -58,26 +62,19 @@ CINZA = "#F5F6F8"
 GRAFITE = "#333333"
 BRANCO = "#FFFFFF"
 
-# ✅ CONFIGURAÇÃO GLOBAL — HOVER ATIVO, BARRA OCULTA
+# ✅ CONFIGURAÇÃO GLOBAL — HOVER ATIVO, SEM INTERAÇÃO DE DRAG/ZOOM
 PLOTLY_CONFIG = {
-    'staticPlot': False,
-    'displayModeBar': False,
+    'staticPlot': False,           # mantém o hover funcionando
+    'displayModeBar': False,       # esconde a barra de ferramentas
     'displaylogo': False,
-    'scrollZoom': False,
-    'doubleClick': False,
+    'scrollZoom': False,           # sem zoom com scroll
+    'doubleClick': False,          # sem zoom com duplo clique
     'showTips': False,
     'editable': False,
     'edits': {
-        'annotationPosition': False,
-        'annotationTail': False,
-        'annotationText': False,
-        'axisTitleText': False,
-        'colorbarPosition': False,
-        'colorbarTitleText': False,
-        'legendPosition': False,
-        'legendText': False,
-        'shapePosition': False,
-        'titleText': False,
+        'annotationPosition': False, 'annotationTail': False, 'annotationText': False,
+        'axisTitleText': False, 'colorbarPosition': False, 'colorbarTitleText': False,
+        'legendPosition': False, 'legendText': False, 'shapePosition': False, 'titleText': False,
     },
 }
 
@@ -119,9 +116,10 @@ def kpi_destaque(titulo, valor, subtitulo=None):
 st.markdown(f"""
 <style>
     .stApp {{ background-color: {BRANCO}; }}
-    .secao-titulo {{ color: {AZUL}; font-size: 20px; font-weight: 600; margin: 32px 0 16px 0; padding-bottom: 8px; border-bottom: 2px solid {AZUL_CLARO}; }}
+    .secao-titulo {{ color: {AZUL}; font-size: 20px; font-weight: 600; margin: 32px 0 4px 0; padding-bottom: 8px; border-bottom: 2px solid {AZUL_CLARO}; }}
+    .secao-subtitulo {{ color: #666; font-size: 13px; margin: 6px 0 16px 0; line-height: 1.5; }}
     .rodape-inst {{ background: {AZUL}; color: white; padding: 20px 32px; border-radius: 8px; text-align: center; font-size: 12px; margin-top: 40px; line-height: 1.6; }}
-    .info-projecao {{ background: {CINZA}; padding: 16px 20px; border-radius: 8px; border-left: 4px solid {AZUL}; font-size: 13px; color: {GRAFITE}; margin: 16px 0; }}
+    .info-projecao {{ background: {CINZA}; padding: 16px 20px; border-radius: 8px; border-left: 4px solid {AZUL}; font-size: 13px; color: {GRAFITE}; margin: 16px 0; line-height: 1.6; }}
     div[data-testid="stDownloadButton"] button {{ background-color: {AMARELO}; color: {AZUL}; border: none; border-radius: 8px; padding: 16px 20px; font-weight: 700; font-size: 15px; width: 100%; transition: all 0.2s; box-shadow: 0 4px 12px rgba(245, 185, 58, 0.3); margin-top: 12px; }}
 </style>
 """, unsafe_allow_html=True)
@@ -166,8 +164,7 @@ valores_numericos = np.array(valores_hist)
 coef = np.polyfit(anos_numericos, valores_numericos, 1)
 tendencia = np.poly1d(coef)
 
-# ✅ Projeção estendida até 2031
-anos_projecao = list(range(2026, ANO_FINAL_PMPI + 1))  # [2026, 2027, 2028, 2029, 2030, 2031]
+anos_projecao = list(range(2026, ANO_FINAL_PMPI + 1))
 valores_projetados = [int(tendencia(a)) for a in anos_projecao]
 residuos = valores_numericos - tendencia(anos_numericos)
 desvio = np.std(residuos)
@@ -177,7 +174,7 @@ total_projetado = sum(valores_projetados)
 media_projetada = int(total_projetado / NUM_ANOS_PROJECAO)
 
 # ==========================================
-# ANALISES ADICIONAIS PARA O PDF
+# ANALISES PARA O PDF
 # ==========================================
 total_parto = sum(dados['por_parto'].values())
 cesariana = dados['por_parto'].get('Cesário', 0) + dados['por_parto'].get('Cesario', 0) + dados['por_parto'].get('Cesareo', 0)
@@ -237,9 +234,6 @@ def gerar_relatorio_pdf():
     identificou um cenário de <b>{tendencia_txt}</b> de aproximadamente <b>{abs(coef[0]):.0f} nascimentos por ano</b>, 
     com projeção de <b>{fmt(total_projetado)} nascimentos</b> para o período 2026-{ANO_FINAL_PMPI}, 
     que corresponde ao horizonte final do Plano Municipal pela Primeira Infância (PMPI).
-    <br/><br/>
-    O peso médio ao nascer foi de <b>{dados['estatisticas']['peso_medio_g']:.0f} g</b> e a idade média das mães 
-    foi de <b>{dados['estatisticas']['idade_media_mae']} anos</b>.
     """
     story.append(Paragraph(texto_executivo, corpo))
     story.append(Spacer(1, 0.5*cm))
@@ -280,9 +274,6 @@ def gerar_relatorio_pdf():
     Com base na análise de regressão linear sobre os dados históricos de {anos_hist[0]} a {anos_hist[-1]}, 
     projeta-se <b>{fmt(total_projetado)} nascimentos</b> no período 2026-{ANO_FINAL_PMPI}, com média anual de 
     <b>{fmt(media_projetada)} nascimentos</b>. A tendência identificada é de <b>{tendencia_txt}</b>.
-    <br/><br/>
-    Esta projeção abrange todo o horizonte do Plano Municipal pela Primeira Infância (PMPI), 
-    servindo como base para o dimensionamento de políticas públicas para os próximos anos.
     """
     story.append(Paragraph(texto_projecao, corpo))
     story.append(Spacer(1, 0.5*cm))
@@ -310,9 +301,12 @@ def gerar_relatorio_pdf():
 
     story.append(Paragraph("4.1 Cobertura de Pré-Natal", destaque))
     texto_prenatal = f"""
+    O acompanhamento pré-natal é medido pelo número de consultas realizadas durante a gestação. 
+    A recomendação do Ministério da Saúde é de <b>no mínimo 6 consultas</b>, sendo ideal <b>7 ou mais</b>.
+    <br/><br/>
     Das <b>{fmt(total_prenatal)}</b> mães registradas, <b>{fmt(pren_adequado)}</b> (<b>{perc_adequado:.1f}%</b>) 
-    realizaram <b>7 ou mais consultas</b> de pré-natal. No entanto, <b>{fmt(pren_nenhum)}</b> mães 
-    (<b>{perc_nenhum:.1f}%</b>) <b>não realizaram nenhuma consulta</b>.
+    realizaram <b>7 ou mais consultas</b>, atingindo a cobertura ideal. No entanto, <b>{fmt(pren_nenhum)}</b> mães 
+    (<b>{perc_nenhum:.1f}%</b>) <b>não realizaram nenhuma consulta</b> — um ponto crítico de atenção.
     """
     story.append(Paragraph(texto_prenatal, corpo))
     story.append(Spacer(1, 0.3*cm))
@@ -402,7 +396,7 @@ with col_kpi3:
 
 
 # ==========================================
-# EVOLUCAO E PROJECAO (ATÉ 2031)
+# EVOLUCAO E PROJECAO
 # ==========================================
 st.markdown(f'<div class="secao-titulo">Evolução Histórica e Projeção (2014-{ANO_FINAL_PMPI})</div>', unsafe_allow_html=True)
 
@@ -435,11 +429,12 @@ fig_hist.update_layout(
     plot_bgcolor=BRANCO, paper_bgcolor=BRANCO,
     font=dict(family="Arial", size=13, color=GRAFITE),
     separators=',.',
+    dragmode=False,
     legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5,
                 font=dict(size=13, color=GRAFITE)),
-    xaxis=dict(showgrid=False, linecolor='#DDDDDD', dtick=1,
+    xaxis=dict(showgrid=False, linecolor='#DDDDDD', dtick=1, fixedrange=True,
                tickfont=dict(color='#333333', size=13)),
-    yaxis=dict(gridcolor='#EEEEEE', linecolor='#DDDDDD',
+    yaxis=dict(gridcolor='#EEEEEE', linecolor='#DDDDDD', fixedrange=True,
                tickfont=dict(color='#333333', size=13),
                range=[y_min, y_max])
 )
@@ -495,6 +490,7 @@ st.markdown(html_tabela, unsafe_allow_html=True)
 col1, col2 = st.columns(2)
 with col1:
     st.markdown('<div class="secao-titulo">Distribuição por Sexo</div>', unsafe_allow_html=True)
+    st.markdown('<div class="secao-subtitulo">Proporção de nascidos do sexo masculino e feminino no período histórico.</div>', unsafe_allow_html=True)
     fig_sexo = go.Figure(data=[go.Pie(
         labels=['Masculino', 'Feminino'], values=[masc, fem], hole=0.55,
         marker=dict(colors=[AZUL, AMARELO], line=dict(color=BRANCO, width=3)),
@@ -505,6 +501,7 @@ with col1:
     )])
     fig_sexo.update_layout(height=380, margin=dict(l=20, r=20, t=30, b=30),
         paper_bgcolor=BRANCO,
+        dragmode=False,
         showlegend=True,
         legend=dict(orientation="h", yanchor="bottom", y=-0.05, xanchor="center", x=0.5,
                     font=dict(size=13, color=GRAFITE)))
@@ -512,6 +509,7 @@ with col1:
 
 with col2:
     st.markdown('<div class="secao-titulo">Tipo de Parto</div>', unsafe_allow_html=True)
+    st.markdown('<div class="secao-subtitulo">Distribuição entre partos cesáreos e vaginais no período histórico.</div>', unsafe_allow_html=True)
     labels_parto = list(dados['por_parto'].keys())
     valores_parto = list(dados['por_parto'].values())
     mapa_cores_parto = {'Cesário': CORAL, 'Cesario': CORAL, 'Cesareo': CORAL, 'Cesariana': CORAL, 'Vaginal': VERDE, 'Normal': VERDE}
@@ -526,6 +524,7 @@ with col2:
     )])
     fig_parto.update_layout(height=380, margin=dict(l=20, r=20, t=30, b=30),
         paper_bgcolor=BRANCO,
+        dragmode=False,
         showlegend=True,
         legend=dict(orientation="h", yanchor="bottom", y=-0.05, xanchor="center", x=0.5,
                     font=dict(size=13, color=GRAFITE)))
@@ -533,39 +532,69 @@ with col2:
 
 
 # ==========================================
-# PRE-NATAL
+# PRE-NATAL (COM CONTEXTO)
 # ==========================================
 st.markdown('<div class="secao-titulo">Cobertura de Pré-Natal</div>', unsafe_allow_html=True)
+st.markdown('<div class="secao-subtitulo">Número de consultas de pré-natal realizadas pelas mães durante a gestação. O Ministério da Saúde recomenda no mínimo 6 consultas, sendo ideal 7 ou mais.</div>', unsafe_allow_html=True)
+
+# Mapeamento de labels descritivos
+mapa_labels_prenatal = {
+    'Nenhuma': 'Nenhuma consulta',
+    'de 1 a 3': 'De 1 a 3 consultas',
+    'de 4 a 6': 'De 4 a 6 consultas',
+    '7 e mais': '7 ou mais consultas (ideal)',
+    'Ignorado': 'Não informado',
+}
 ordem_prenatal = ['Nenhuma', 'de 1 a 3', 'de 4 a 6', '7 e mais', 'Ignorado']
 dados_prenatal_ordenado = {k: dados['por_prenatal'][k] for k in ordem_prenatal if k in dados['por_prenatal']}
+labels_prenatal_descritivos = [mapa_labels_prenatal.get(k, k) for k in dados_prenatal_ordenado.keys()]
+
+# Cores por categoria
+cores_prenatal = []
+for k in dados_prenatal_ordenado.keys():
+    if k == '7 e mais':
+        cores_prenatal.append(VERDE)   # ideal — verde
+    elif k == 'Nenhuma':
+        cores_prenatal.append(CORAL)   # crítico — coral
+    elif k == 'Ignorado':
+        cores_prenatal.append('#CCCCCC')  # cinza
+    else:
+        cores_prenatal.append(AZUL)    # parcial — azul
 
 fig_prenatal = go.Figure(data=[go.Bar(
     x=list(dados_prenatal_ordenado.values()),
-    y=list(dados_prenatal_ordenado.keys()),
+    y=labels_prenatal_descritivos,
     orientation='h',
-    marker=dict(color=AZUL, line=dict(color=BRANCO, width=1)),
+    marker=dict(color=cores_prenatal, line=dict(color=BRANCO, width=1)),
     text=[fmt(v) for v in dados_prenatal_ordenado.values()],
     textposition='outside',
     textfont=dict(size=13, color=GRAFITE, family="Arial"),
     hovertemplate='<b>%{y}</b><br>%{x:,.0f} mães<extra></extra>'
 )])
 fig_prenatal.update_layout(
-    height=340, margin=dict(l=20, r=100, t=30, b=50),
+    height=380, margin=dict(l=20, r=100, t=30, b=50),
     xaxis_title="Número de Mães", yaxis_title="",
     plot_bgcolor=BRANCO, paper_bgcolor=BRANCO,
     font=dict(family="Arial", size=13, color=GRAFITE),
     separators=',.',
-    xaxis=dict(gridcolor='#EEEEEE', linecolor='#DDDDDD', tickfont=dict(color='#333333', size=13)),
-    yaxis=dict(showgrid=False, linecolor='#DDDDDD', tickfont=dict(color='#333333', size=13)),
+    dragmode=False,
+    xaxis=dict(gridcolor='#EEEEEE', linecolor='#DDDDDD', fixedrange=True,
+               tickfont=dict(color='#333333', size=13)),
+    yaxis=dict(showgrid=False, linecolor='#DDDDDD', fixedrange=True,
+               tickfont=dict(color='#333333', size=13)),
     showlegend=False
 )
 st.plotly_chart(fig_prenatal, use_container_width=True, config=PLOTLY_CONFIG)
+
+st.markdown(f'<div class="info-projecao"><strong>Como interpretar:</strong> Barras em <strong style="color: {VERDE};">verde</strong> representam a cobertura ideal (7 ou mais consultas). Barras em <strong style="color: {CORAL};">coral</strong> indicam situação crítica (nenhuma consulta). Barras em <strong style="color: {AZUL};">azul</strong> mostram cobertura parcial.</div>', unsafe_allow_html=True)
 
 
 # ==========================================
 # PESO AO NASCER
 # ==========================================
 st.markdown('<div class="secao-titulo">Distribuição de Peso ao Nascer</div>', unsafe_allow_html=True)
+st.markdown('<div class="secao-subtitulo">Distribuição dos bebês por faixa de peso ao nascer (em gramas). Peso abaixo de 2.500 g é considerado baixo peso.</div>', unsafe_allow_html=True)
+
 ordem_peso = ['Menos de 500 g', '500 a 999g', '1000 a 1499g', '1500 a 2499g', '2500 a 2999g', '3000 a 3999g', '4000g e mais', 'Ign']
 dados_peso_ordenado = {k: dados['por_peso'][k] for k in ordem_peso if k in dados['por_peso']}
 cores_peso = {'Menos de 500 g': CORAL, '500 a 999g': CORAL, '1000 a 1499g': CORAL, '1500 a 2499g': AMARELO, '2500 a 2999g': VERDE, '3000 a 3999g': VERDE, '4000g e mais': AMARELO, 'Ign': '#CCCCCC'}
@@ -586,17 +615,24 @@ fig_peso.update_layout(
     plot_bgcolor=BRANCO, paper_bgcolor=BRANCO,
     font=dict(family="Arial", size=13, color=GRAFITE),
     separators=',.',
-    xaxis=dict(gridcolor='#EEEEEE', linecolor='#DDDDDD', tickfont=dict(color='#333333', size=13)),
-    yaxis=dict(showgrid=False, linecolor='#DDDDDD', tickfont=dict(color='#333333', size=13)),
+    dragmode=False,
+    xaxis=dict(gridcolor='#EEEEEE', linecolor='#DDDDDD', fixedrange=True,
+               tickfont=dict(color='#333333', size=13)),
+    yaxis=dict(showgrid=False, linecolor='#DDDDDD', fixedrange=True,
+               tickfont=dict(color='#333333', size=13)),
     showlegend=False
 )
 st.plotly_chart(fig_peso, use_container_width=True, config=PLOTLY_CONFIG)
+
+st.markdown(f'<div class="info-projecao"><strong>Como interpretar:</strong> Barras em <strong style="color: {CORAL};">coral</strong> = peso muito baixo (&lt; 1.500 g). <strong style="color: {AMARELO};">Amarelo</strong> = baixo peso (1.500 a 2.499 g) ou macrossomia (≥ 4.000 g). <strong style="color: {VERDE};">Verde</strong> = peso adequado (2.500 a 3.999 g).</div>', unsafe_allow_html=True)
 
 
 # ==========================================
 # FAIXA ETARIA DAS MAES
 # ==========================================
 st.markdown('<div class="secao-titulo">Faixa Etária das Mães</div>', unsafe_allow_html=True)
+st.markdown('<div class="secao-subtitulo">Distribuição das mães por faixa etária no período histórico. Idade materna é um fator de risco para a gestação.</div>', unsafe_allow_html=True)
+
 labels_idade = list(dados['por_idade_mae'].keys())
 valores_idade = list(dados['por_idade_mae'].values())
 
@@ -614,12 +650,17 @@ fig_idade.update_layout(
     plot_bgcolor=BRANCO, paper_bgcolor=BRANCO,
     font=dict(family="Arial", size=13, color=GRAFITE),
     separators=',.',
-    xaxis=dict(showgrid=False, linecolor='#DDDDDD', tickfont=dict(color='#333333', size=13)),
-    yaxis=dict(showgrid=False, showticklabels=True, linecolor='#DDDDDD', tickfont=dict(color='#333333', size=13)),
+    dragmode=False,
+    xaxis=dict(showgrid=False, linecolor='#DDDDDD', fixedrange=True,
+               tickfont=dict(color='#333333', size=13)),
+    yaxis=dict(showgrid=False, showticklabels=True, linecolor='#DDDDDD', fixedrange=True,
+               tickfont=dict(color='#333333', size=13)),
     showlegend=False,
     bargap=0.35
 )
 st.plotly_chart(fig_idade, use_container_width=True, config=PLOTLY_CONFIG)
+
+st.markdown(f'<div class="info-projecao"><strong>Como interpretar:</strong> A faixa <strong>20 a 29 anos</strong> concentra a maior parte dos nascimentos. Gestação na adolescência (10 a 19 anos) ou acima de 40 anos são consideradas de risco.</div>', unsafe_allow_html=True)
 
 
 # ==========================================
@@ -627,6 +668,8 @@ st.plotly_chart(fig_idade, use_container_width=True, config=PLOTLY_CONFIG)
 # ==========================================
 if 'por_gestacao' in dados:
     st.markdown('<div class="secao-titulo">Duração da Gestação</div>', unsafe_allow_html=True)
+    st.markdown('<div class="secao-subtitulo">Distribuição dos nascimentos por tempo de gestação (em semanas). Gestação a termo é entre 37 e 41 semanas.</div>', unsafe_allow_html=True)
+
     labels_gest = list(dados['por_gestacao'].keys())
     valores_gest = list(dados['por_gestacao'].values())
 
@@ -644,8 +687,11 @@ if 'por_gestacao' in dados:
         plot_bgcolor=BRANCO, paper_bgcolor=BRANCO,
         font=dict(family="Arial", size=13, color=GRAFITE),
         separators=',.',
-        xaxis=dict(gridcolor='#EEEEEE', linecolor='#DDDDDD', tickfont=dict(color='#333333', size=13)),
-        yaxis=dict(showgrid=False, linecolor='#DDDDDD', tickfont=dict(color='#333333', size=13)),
+        dragmode=False,
+        xaxis=dict(gridcolor='#EEEEEE', linecolor='#DDDDDD', fixedrange=True,
+                   tickfont=dict(color='#333333', size=13)),
+        yaxis=dict(showgrid=False, linecolor='#DDDDDD', fixedrange=True,
+                   tickfont=dict(color='#333333', size=13)),
         showlegend=False
     )
     st.plotly_chart(fig_gest, use_container_width=True, config=PLOTLY_CONFIG)
