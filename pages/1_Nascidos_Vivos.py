@@ -3,7 +3,7 @@
 Painel de Nascidos Vivos - Observatório da Primeira Infância de Caucaia
 Página interna: pages/1_Nascidos_Vivos.py
 Projeção estendida até 2031 (final do PMPI).
-Tooltips otimizados para aparecer com mais facilidade.
+Tooltips unificados nos gráficos de barras.
 """
 
 import streamlit as st
@@ -293,10 +293,10 @@ with col_kpi3:
 
 
 # ==========================================
-# EVOLUCAO E PROJECAO
+# EVOLUCAO E PROJECAO (LINHA - hover x unified)
 # ==========================================
 st.markdown(f'<div class="secao-titulo">Evolução Histórica e Projeção (2014-{ANO_FINAL_PMPI})</div>', unsafe_allow_html=True)
-st.markdown('<div class="secao-subtitulo">Passe o mouse sobre os pontos para ver o número de nascidos em cada ano. A linha tracejada vertical marca o início da projeção.</div>', unsafe_allow_html=True)
+st.markdown('<div class="secao-subtitulo">Passe o mouse sobre o gráfico para ver o número de nascidos em cada ano. A linha tracejada vertical marca o início da projeção.</div>', unsafe_allow_html=True)
 
 y_min = min(min(valores_hist), min(valores_pessimista)) - 300
 y_max = max(max(valores_hist), max(valores_otimista)) + 300
@@ -309,7 +309,7 @@ fig_hist.add_trace(go.Scatter(
     line=dict(color=AZUL, width=3),
     marker=dict(size=12, color=AZUL, line=dict(color=BRANCO, width=2)),
     hovertemplate='<b>📅 Ano %{x}</b><br>' +
-                  '<b>👶 Nascidos:</b> %{y:,.0f}<br>' +
+                  '<b>👶 Histórico:</b> %{y:,.0f}<br>' +
                   '<extra></extra>'
 ))
 
@@ -318,27 +318,21 @@ fig_hist.add_trace(go.Scatter(
     mode='lines+markers', name='Projeção Realista',
     line=dict(color=AMARELO, width=3, dash='dash'),
     marker=dict(size=12, color=AMARELO, symbol='diamond', line=dict(color=BRANCO, width=2)),
-    hovertemplate='<b>📅 Ano %{x} (projeção)</b><br>' +
-                  '<b>📊 Cenário Realista:</b> %{y:,.0f}<br>' +
-                  '<extra></extra>'
+    hovertemplate='<b>📊 Realista:</b> %{y:,.0f}<extra></extra>'
 ))
 
 fig_hist.add_trace(go.Scatter(
     x=anos_projecao, y=valores_otimista,
     mode='lines', name='Cenário Otimista',
     line=dict(color=VERDE, width=1.5, dash='dot'),
-    hovertemplate='<b>📅 Ano %{x} (projeção)</b><br>' +
-                  '<b>📈 Otimista:</b> %{y:,.0f}<br>' +
-                  '<extra></extra>'
+    hovertemplate='<b>📈 Otimista:</b> %{y:,.0f}<extra></extra>'
 ))
 
 fig_hist.add_trace(go.Scatter(
     x=anos_projecao, y=valores_pessimista,
     mode='lines', name='Cenário Pessimista',
     line=dict(color=CORAL, width=1.5, dash='dot'),
-    hovertemplate='<b>📅 Ano %{x} (projeção)</b><br>' +
-                  '<b>📉 Pessimista:</b> %{y:,.0f}<br>' +
-                  '<extra></extra>'
+    hovertemplate='<b>📉 Pessimista:</b> %{y:,.0f}<extra></extra>'
 ))
 
 fig_hist.add_vline(x=2025.5, line_width=2, line_dash="solid", line_color="#999999",
@@ -408,7 +402,7 @@ st.markdown(html_tabela, unsafe_allow_html=True)
 
 
 # ==========================================
-# SEXO E PARTO
+# SEXO E PARTO (PIZZA - hover closest)
 # ==========================================
 col1, col2 = st.columns(2)
 with col1:
@@ -459,7 +453,7 @@ with col2:
 
 
 # ==========================================
-# PRE-NATAL (COM TOOLTIP RICO)
+# PRE-NATAL (BARRAS HORIZONTAIS - hover y unified)
 # ==========================================
 st.markdown('<div class="secao-titulo">Cobertura de Pré-Natal</div>', unsafe_allow_html=True)
 st.markdown('<div class="secao-subtitulo">Número de consultas de pré-natal realizadas pelas mães. O Ministério da Saúde recomenda no mínimo 6 consultas, sendo ideal 7 ou mais.</div>', unsafe_allow_html=True)
@@ -495,6 +489,12 @@ for k in dados_prenatal_ordenado.keys():
     else:
         cores_prenatal.append(AZUL)
 
+# Texto do hover (para hovermode y unified)
+text_prenatal = []
+for i, k in enumerate(dados_prenatal_ordenado.keys()):
+    texto = f"{fmt(dados_prenatal_ordenado[k])} mães ({perc_prenatal[i]:.1f}%) — {contextos[i]}"
+    text_prenatal.append(texto)
+
 fig_prenatal = go.Figure(data=[go.Bar(
     x=list(dados_prenatal_ordenado.values()),
     y=labels_prenatal_descritivos,
@@ -504,10 +504,8 @@ fig_prenatal = go.Figure(data=[go.Bar(
     textposition='outside',
     textfont=dict(size=13, color=GRAFITE, family="Arial"),
     customdata=list(zip(perc_prenatal, contextos)),
-    hovertemplate='<b>📋 %{y}</b><br>' +
-                  '<b>👥 Mães:</b> %{x:,.0f}<br>' +
-                  '<b>📊 Percentual:</b> %{customdata[0]:.1f}%<br>' +
-                  '<b>%{customdata[1]}</b><br>' +
+    hovertemplate='<b>👥 %{x:,.0f} mães</b> (%{customdata[0]:.1f}%)<br>' +
+                  '%{customdata[1]}<br>' +
                   '<extra></extra>'
 )])
 fig_prenatal.update_layout(
@@ -517,9 +515,9 @@ fig_prenatal.update_layout(
     font=dict(family="Arial", size=13, color=GRAFITE),
     separators=',.',
     dragmode=False,
-    hovermode='closest',
+    hovermode='y unified',
     hoverlabel=HOVERLABEL,
-    bargap=0.35,
+    bargap=0.15,
     xaxis=dict(gridcolor='#EEEEEE', linecolor='#DDDDDD', fixedrange=True,
                tickfont=dict(color='#333333', size=13)),
     yaxis=dict(showgrid=False, linecolor='#DDDDDD', fixedrange=True,
@@ -532,7 +530,7 @@ st.markdown(f'<div class="info-projecao"><strong>Como interpretar:</strong> Barr
 
 
 # ==========================================
-# PESO AO NASCER
+# PESO AO NASCER (BARRAS HORIZONTAIS - hover y unified)
 # ==========================================
 st.markdown('<div class="secao-titulo">Distribuição de Peso ao Nascer</div>', unsafe_allow_html=True)
 st.markdown('<div class="secao-subtitulo">Distribuição dos bebês por faixa de peso ao nascer (em gramas). Peso abaixo de 2.500 g é considerado baixo peso.</div>', unsafe_allow_html=True)
@@ -564,10 +562,8 @@ fig_peso = go.Figure(data=[go.Bar(
     textposition='outside',
     textfont=dict(size=13, color=GRAFITE, family="Arial"),
     customdata=list(zip(perc_peso, contextos_peso)),
-    hovertemplate='<b>⚖️ Peso: %{y}</b><br>' +
-                  '<b>👶 Bebês:</b> %{x:,.0f}<br>' +
-                  '<b>📊 Percentual:</b> %{customdata[0]:.1f}%<br>' +
-                  '<b>%{customdata[1]}</b><br>' +
+    hovertemplate='<b>👶 %{x:,.0f} bebês</b> (%{customdata[0]:.1f}%)<br>' +
+                  '%{customdata[1]}<br>' +
                   '<extra></extra>'
 )])
 fig_peso.update_layout(
@@ -577,9 +573,9 @@ fig_peso.update_layout(
     font=dict(family="Arial", size=13, color=GRAFITE),
     separators=',.',
     dragmode=False,
-    hovermode='closest',
+    hovermode='y unified',
     hoverlabel=HOVERLABEL,
-    bargap=0.35,
+    bargap=0.15,
     xaxis=dict(gridcolor='#EEEEEE', linecolor='#DDDDDD', fixedrange=True,
                tickfont=dict(color='#333333', size=13)),
     yaxis=dict(showgrid=False, linecolor='#DDDDDD', fixedrange=True,
@@ -592,7 +588,7 @@ st.markdown(f'<div class="info-projecao"><strong>Como interpretar:</strong> Barr
 
 
 # ==========================================
-# FAIXA ETARIA DAS MAES
+# FAIXA ETARIA DAS MAES (BARRAS VERTICAIS - hover x unified)
 # ==========================================
 st.markdown('<div class="secao-titulo">Faixa Etária das Mães</div>', unsafe_allow_html=True)
 st.markdown('<div class="secao-subtitulo">Distribuição das mães por faixa etária no período histórico. Idade materna é um fator de risco para a gestação.</div>', unsafe_allow_html=True)
@@ -627,10 +623,8 @@ fig_idade = go.Figure(data=[go.Bar(
     textposition='outside',
     textfont=dict(size=13, color=GRAFITE, family="Arial"),
     customdata=list(zip(perc_idade, contextos_idade)),
-    hovertemplate='<b>👩 Faixa: %{x}</b><br>' +
-                  '<b>👥 Mães:</b> %{y:,.0f}<br>' +
-                  '<b>📊 Percentual:</b> %{customdata[0]:.1f}%<br>' +
-                  '<b>%{customdata[1]}</b><br>' +
+    hovertemplate='<b>👥 %{y:,.0f} mães</b> (%{customdata[0]:.1f}%)<br>' +
+                  '%{customdata[1]}<br>' +
                   '<extra></extra>'
 )])
 fig_idade.update_layout(
@@ -640,20 +634,20 @@ fig_idade.update_layout(
     font=dict(family="Arial", size=13, color=GRAFITE),
     separators=',.',
     dragmode=False,
-    hovermode='closest',
+    hovermode='x unified',
     hoverlabel=HOVERLABEL,
     xaxis=dict(showgrid=False, linecolor='#DDDDDD', fixedrange=True,
                tickfont=dict(color='#333333', size=13)),
     yaxis=dict(showgrid=False, showticklabels=True, linecolor='#DDDDDD', fixedrange=True,
                tickfont=dict(color='#333333', size=13)),
     showlegend=False,
-    bargap=0.35
+    bargap=0.15
 )
 st.plotly_chart(fig_idade, use_container_width=True, config=PLOTLY_CONFIG)
 
 
 # ==========================================
-# GESTACAO
+# GESTACAO (BARRAS HORIZONTAIS - hover y unified)
 # ==========================================
 if 'por_gestacao' in dados:
     st.markdown('<div class="secao-titulo">Duração da Gestação</div>', unsafe_allow_html=True)
@@ -682,10 +676,8 @@ if 'por_gestacao' in dados:
         textposition='outside',
         textfont=dict(size=13, color=GRAFITE, family="Arial"),
         customdata=list(zip(perc_gest, contextos_gest)),
-        hovertemplate='<b>🤰 Duração: %{y}</b><br>' +
-                      '<b>👶 Bebês:</b> %{x:,.0f}<br>' +
-                      '<b>📊 Percentual:</b> %{customdata[0]:.1f}%<br>' +
-                      '<b>%{customdata[1]}</b><br>' +
+        hovertemplate='<b>👶 %{x:,.0f} bebês</b> (%{customdata[0]:.1f}%)<br>' +
+                      '%{customdata[1]}<br>' +
                       '<extra></extra>'
     )])
     fig_gest.update_layout(
@@ -695,9 +687,9 @@ if 'por_gestacao' in dados:
         font=dict(family="Arial", size=13, color=GRAFITE),
         separators=',.',
         dragmode=False,
-        hovermode='closest',
+        hovermode='y unified',
         hoverlabel=HOVERLABEL,
-        bargap=0.35,
+        bargap=0.15,
         xaxis=dict(gridcolor='#EEEEEE', linecolor='#DDDDDD', fixedrange=True,
                    tickfont=dict(color='#333333', size=13)),
         yaxis=dict(showgrid=False, linecolor='#DDDDDD', fixedrange=True,
