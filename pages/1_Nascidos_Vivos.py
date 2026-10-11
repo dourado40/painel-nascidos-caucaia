@@ -3,7 +3,7 @@
 Painel de Nascidos Vivos - Observatório da Primeira Infância de Caucaia
 Página interna: pages/1_Nascidos_Vivos.py
 Projeção estendida até 2031 (final do PMPI).
-Gráficos estáticos com hover informativo.
+Tooltips otimizados para aparecer com mais facilidade.
 """
 
 import streamlit as st
@@ -43,11 +43,8 @@ st.markdown("""
     iframe[title*="streamlit"] { display: none !important; }
     .stApp { background-color: #FFFFFF; }
 
-    /* Esconde a barra de ferramentas do Plotly */
     .modebar { display: none !important; }
     .modebar-container { display: none !important; }
-
-    /* Bloqueia selecao/arrasto nos graficos */
     .js-plotly-plot .plotly .draglayer { display: none !important; }
 </style>
 """, unsafe_allow_html=True)
@@ -78,6 +75,14 @@ PLOTLY_CONFIG = {
     },
     'hovermode': 'closest',
 }
+
+# Estilo padrão dos tooltips (aplicado globalmente)
+HOVERLABEL = dict(
+    bgcolor=BRANCO,
+    bordercolor=AZUL,
+    font=dict(size=13, family="Arial", color=GRAFITE),
+    align="left",
+)
 
 # ✅ HORIZONTE DO PMPI
 ANO_FINAL_PMPI = 2031
@@ -288,7 +293,7 @@ with col_kpi3:
 
 
 # ==========================================
-# EVOLUCAO E PROJECAO (COM TOOLTIP RICO)
+# EVOLUCAO E PROJECAO
 # ==========================================
 st.markdown(f'<div class="secao-titulo">Evolução Histórica e Projeção (2014-{ANO_FINAL_PMPI})</div>', unsafe_allow_html=True)
 st.markdown('<div class="secao-subtitulo">Passe o mouse sobre os pontos para ver o número de nascidos em cada ano. A linha tracejada vertical marca o início da projeção.</div>', unsafe_allow_html=True)
@@ -298,45 +303,41 @@ y_max = max(max(valores_hist), max(valores_otimista)) + 300
 
 fig_hist = go.Figure()
 
-# Trace histórico com tooltip detalhado
 fig_hist.add_trace(go.Scatter(
     x=anos_hist, y=valores_hist,
     mode='lines+markers', name='Histórico',
     line=dict(color=AZUL, width=3),
-    marker=dict(size=10, color=AZUL, line=dict(color=BRANCO, width=2)),
+    marker=dict(size=12, color=AZUL, line=dict(color=BRANCO, width=2)),
     hovertemplate='<b>📅 Ano %{x}</b><br>' +
                   '<b>👶 Nascidos:</b> %{y:,.0f}<br>' +
                   '<extra></extra>'
 ))
 
-# Trace projeção realista
 fig_hist.add_trace(go.Scatter(
     x=anos_projecao, y=valores_projetados,
     mode='lines+markers', name='Projeção Realista',
     line=dict(color=AMARELO, width=3, dash='dash'),
-    marker=dict(size=10, color=AMARELO, symbol='diamond', line=dict(color=BRANCO, width=2)),
+    marker=dict(size=12, color=AMARELO, symbol='diamond', line=dict(color=BRANCO, width=2)),
     hovertemplate='<b>📅 Ano %{x} (projeção)</b><br>' +
                   '<b>📊 Cenário Realista:</b> %{y:,.0f}<br>' +
                   '<extra></extra>'
 ))
 
-# Otimista
 fig_hist.add_trace(go.Scatter(
     x=anos_projecao, y=valores_otimista,
     mode='lines', name='Cenário Otimista',
     line=dict(color=VERDE, width=1.5, dash='dot'),
     hovertemplate='<b>📅 Ano %{x} (projeção)</b><br>' +
-                  '<b>📈 Cenário Otimista:</b> %{y:,.0f}<br>' +
+                  '<b>📈 Otimista:</b> %{y:,.0f}<br>' +
                   '<extra></extra>'
 ))
 
-# Pessimista
 fig_hist.add_trace(go.Scatter(
     x=anos_projecao, y=valores_pessimista,
     mode='lines', name='Cenário Pessimista',
     line=dict(color=CORAL, width=1.5, dash='dot'),
     hovertemplate='<b>📅 Ano %{x} (projeção)</b><br>' +
-                  '<b>📉 Cenário Pessimista:</b> %{y:,.0f}<br>' +
+                  '<b>📉 Pessimista:</b> %{y:,.0f}<br>' +
                   '<extra></extra>'
 ))
 
@@ -353,8 +354,7 @@ fig_hist.update_layout(
     separators=',.',
     dragmode=False,
     hovermode='x unified',
-    hoverlabel=dict(bgcolor=BRANCO, font_size=13, font_family="Arial",
-                    bordercolor=AZUL_CLARO),
+    hoverlabel=HOVERLABEL,
     legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5,
                 font=dict(size=13, color=GRAFITE)),
     xaxis=dict(showgrid=False, linecolor='#DDDDDD', dtick=1, fixedrange=True,
@@ -408,20 +408,14 @@ st.markdown(html_tabela, unsafe_allow_html=True)
 
 
 # ==========================================
-# SEXO E PARTO (COM TOOLTIP RICO)
+# SEXO E PARTO
 # ==========================================
 col1, col2 = st.columns(2)
 with col1:
     st.markdown('<div class="secao-titulo">Distribuição por Sexo</div>', unsafe_allow_html=True)
     st.markdown('<div class="secao-subtitulo">Proporção de nascidos do sexo masculino e feminino no período histórico.</div>', unsafe_allow_html=True)
-    
-    # Dados enriquecidos para o hover
-    labels_sexo = ['Masculino', 'Feminino']
-    valores_sexo = [masc, fem]
-    perc_sexo = [perc_masc, perc_fem]
-    
     fig_sexo = go.Figure(data=[go.Pie(
-        labels=labels_sexo, values=valores_sexo, hole=0.55,
+        labels=['Masculino', 'Feminino'], values=[masc, fem], hole=0.55,
         marker=dict(colors=[AZUL, AMARELO], line=dict(color=BRANCO, width=3)),
         textinfo='label+percent',
         textfont=dict(size=14, color=BRANCO, family="Arial"),
@@ -432,10 +426,7 @@ with col1:
                       '<extra></extra>'
     )])
     fig_sexo.update_layout(height=380, margin=dict(l=20, r=20, t=30, b=30),
-        paper_bgcolor=BRANCO,
-        dragmode=False,
-        hoverlabel=dict(bgcolor=BRANCO, font_size=13, font_family="Arial",
-                        bordercolor=AZUL_CLARO),
+        paper_bgcolor=BRANCO, dragmode=False, hoverlabel=HOVERLABEL,
         showlegend=True,
         legend=dict(orientation="h", yanchor="bottom", y=-0.05, xanchor="center", x=0.5,
                     font=dict(size=13, color=GRAFITE)))
@@ -460,10 +451,7 @@ with col2:
                       '<extra></extra>'
     )])
     fig_parto.update_layout(height=380, margin=dict(l=20, r=20, t=30, b=30),
-        paper_bgcolor=BRANCO,
-        dragmode=False,
-        hoverlabel=dict(bgcolor=BRANCO, font_size=13, font_family="Arial",
-                        bordercolor=AZUL_CLARO),
+        paper_bgcolor=BRANCO, dragmode=False, hoverlabel=HOVERLABEL,
         showlegend=True,
         legend=dict(orientation="h", yanchor="bottom", y=-0.05, xanchor="center", x=0.5,
                     font=dict(size=13, color=GRAFITE)))
@@ -483,7 +471,6 @@ mapa_labels_prenatal = {
     '7 e mais': '7 ou mais consultas',
     'Ignorado': 'Não informado',
 }
-# Contexto por categoria (para o tooltip)
 contexto_prenatal = {
     '7 e mais': '✅ Cobertura ideal (recomendação do MS)',
     'de 4 a 6': '⚠️ Cobertura parcial (mínimo aceitável)',
@@ -530,8 +517,9 @@ fig_prenatal.update_layout(
     font=dict(family="Arial", size=13, color=GRAFITE),
     separators=',.',
     dragmode=False,
-    hoverlabel=dict(bgcolor=BRANCO, font_size=13, font_family="Arial",
-                    bordercolor=AZUL_CLARO),
+    hovermode='closest',
+    hoverlabel=HOVERLABEL,
+    bargap=0.35,
     xaxis=dict(gridcolor='#EEEEEE', linecolor='#DDDDDD', fixedrange=True,
                tickfont=dict(color='#333333', size=13)),
     yaxis=dict(showgrid=False, linecolor='#DDDDDD', fixedrange=True,
@@ -544,7 +532,7 @@ st.markdown(f'<div class="info-projecao"><strong>Como interpretar:</strong> Barr
 
 
 # ==========================================
-# PESO AO NASCER (COM TOOLTIP RICO)
+# PESO AO NASCER
 # ==========================================
 st.markdown('<div class="secao-titulo">Distribuição de Peso ao Nascer</div>', unsafe_allow_html=True)
 st.markdown('<div class="secao-subtitulo">Distribuição dos bebês por faixa de peso ao nascer (em gramas). Peso abaixo de 2.500 g é considerado baixo peso.</div>', unsafe_allow_html=True)
@@ -553,7 +541,6 @@ ordem_peso = ['Menos de 500 g', '500 a 999g', '1000 a 1499g', '1500 a 2499g', '2
 dados_peso_ordenado = {k: dados['por_peso'][k] for k in ordem_peso if k in dados['por_peso']}
 cores_peso = {'Menos de 500 g': CORAL, '500 a 999g': CORAL, '1000 a 1499g': CORAL, '1500 a 2499g': AMARELO, '2500 a 2999g': VERDE, '3000 a 3999g': VERDE, '4000g e mais': AMARELO, 'Ign': '#CCCCCC'}
 
-# Contexto por faixa de peso
 contexto_peso = {
     'Menos de 500 g': '🚨 Extremo baixo peso',
     '500 a 999g': '🚨 Muito baixo peso',
@@ -590,8 +577,9 @@ fig_peso.update_layout(
     font=dict(family="Arial", size=13, color=GRAFITE),
     separators=',.',
     dragmode=False,
-    hoverlabel=dict(bgcolor=BRANCO, font_size=13, font_family="Arial",
-                    bordercolor=AZUL_CLARO),
+    hovermode='closest',
+    hoverlabel=HOVERLABEL,
+    bargap=0.35,
     xaxis=dict(gridcolor='#EEEEEE', linecolor='#DDDDDD', fixedrange=True,
                tickfont=dict(color='#333333', size=13)),
     yaxis=dict(showgrid=False, linecolor='#DDDDDD', fixedrange=True,
@@ -604,7 +592,7 @@ st.markdown(f'<div class="info-projecao"><strong>Como interpretar:</strong> Barr
 
 
 # ==========================================
-# FAIXA ETARIA DAS MAES (COM TOOLTIP RICO)
+# FAIXA ETARIA DAS MAES
 # ==========================================
 st.markdown('<div class="secao-titulo">Faixa Etária das Mães</div>', unsafe_allow_html=True)
 st.markdown('<div class="secao-subtitulo">Distribuição das mães por faixa etária no período histórico. Idade materna é um fator de risco para a gestação.</div>', unsafe_allow_html=True)
@@ -614,7 +602,6 @@ valores_idade = list(dados['por_idade_mae'].values())
 total_idade = sum(valores_idade)
 perc_idade = [(v/total_idade*100) if total_idade > 0 else 0 for v in valores_idade]
 
-# Contexto por faixa etária
 contexto_idade_map = {
     '10 a 14 anos': '🚨 Gestação na infância — risco extremo',
     '15 a 19 anos': '⚠️ Gestação na adolescência — risco',
@@ -653,8 +640,8 @@ fig_idade.update_layout(
     font=dict(family="Arial", size=13, color=GRAFITE),
     separators=',.',
     dragmode=False,
-    hoverlabel=dict(bgcolor=BRANCO, font_size=13, font_family="Arial",
-                    bordercolor=AZUL_CLARO),
+    hovermode='closest',
+    hoverlabel=HOVERLABEL,
     xaxis=dict(showgrid=False, linecolor='#DDDDDD', fixedrange=True,
                tickfont=dict(color='#333333', size=13)),
     yaxis=dict(showgrid=False, showticklabels=True, linecolor='#DDDDDD', fixedrange=True,
@@ -666,7 +653,7 @@ st.plotly_chart(fig_idade, use_container_width=True, config=PLOTLY_CONFIG)
 
 
 # ==========================================
-# GESTACAO (COM TOOLTIP RICO)
+# GESTACAO
 # ==========================================
 if 'por_gestacao' in dados:
     st.markdown('<div class="secao-titulo">Duração da Gestação</div>', unsafe_allow_html=True)
@@ -677,7 +664,6 @@ if 'por_gestacao' in dados:
     total_gest = sum(valores_gest)
     perc_gest = [(v/total_gest*100) if total_gest > 0 else 0 for v in valores_gest]
 
-    # Contexto por duração
     contexto_gest_map = {
         'Menos de 22 semanas': '🚨 Prematuridade extrema',
         '22 a 27 semanas': '🚨 Prematuridade muito precoce',
@@ -709,8 +695,9 @@ if 'por_gestacao' in dados:
         font=dict(family="Arial", size=13, color=GRAFITE),
         separators=',.',
         dragmode=False,
-        hoverlabel=dict(bgcolor=BRANCO, font_size=13, font_family="Arial",
-                        bordercolor=AZUL_CLARO),
+        hovermode='closest',
+        hoverlabel=HOVERLABEL,
+        bargap=0.35,
         xaxis=dict(gridcolor='#EEEEEE', linecolor='#DDDDDD', fixedrange=True,
                    tickfont=dict(color='#333333', size=13)),
         yaxis=dict(showgrid=False, linecolor='#DDDDDD', fixedrange=True,
