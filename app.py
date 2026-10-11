@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 """
 app.py - Hub de Indicadores
-Card de Nascidos Vivos 100% clicável com link HTML.
+Página inicial do Streamlit, carregada dentro do iframe no WordPress.
+Card de Nascidos Vivos 100% clicável com URL absoluta.
 """
 
 import streamlit as st
 from datetime import datetime
 
+# ==========================================
+# CONFIGURACAO
+# ==========================================
 st.set_page_config(
     page_title="Indicadores - Observatório Caucaia",
     page_icon="https://www.caucaia.ce.gov.br/favicon.ico",
@@ -92,7 +96,7 @@ col1, col2, col3 = st.columns(3)
 # --- CARD 1: NASCIDOS VIVOS (100% CLICÁVEL) ---
 with col1:
     st.markdown(f"""
-    <a class="card-link" href="/Nascidos_Vivos" target="_top">
+    <a class="card-link" href="https://painel-nascidos-caucaia.streamlit.app/Nascidos_Vivos" target="_top">
         <div class="card-inner">
             <div>
                 <div style="font-size: 38px; margin-bottom: 12px;">👶</div>
