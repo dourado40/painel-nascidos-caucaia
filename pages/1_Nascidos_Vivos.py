@@ -21,6 +21,9 @@ from reportlab.platypus import (
 )
 from reportlab.lib.enums import TA_JUSTIFY, TA_CENTER
 
+# ==========================================
+# CSS
+# ==========================================
 st.markdown("""
 <style>
     header[data-testid="stHeader"] { display: none !important; }
@@ -83,14 +86,18 @@ def kpi_destaque(titulo, valor, subtitulo=None):
 
 st.markdown(f"""
 <style>
+    .stApp {{ background-color: {BRANCO}; }}
     .secao-titulo {{ color: {AZUL}; font-size: 20px; font-weight: 600; margin: 32px 0 16px 0; padding-bottom: 8px; border-bottom: 2px solid {AZUL_CLARO}; }}
     .rodape-inst {{ background: {AZUL}; color: white; padding: 20px 32px; border-radius: 8px; text-align: center; font-size: 12px; margin-top: 40px; line-height: 1.6; }}
     .info-projecao {{ background: {CINZA}; padding: 16px 20px; border-radius: 8px; border-left: 4px solid {AZUL}; font-size: 13px; color: {GRAFITE}; margin: 16px 0; }}
-    div[data-testid="stDownloadButton"] button {{ background-color: {AMARELO}; color: {AZUL}; border: none; border-radius: 8px; padding: 16px 20px; font-weight: 700; font-size: 15px; width: 100%; box-shadow: 0 4px 12px rgba(245, 185, 58, 0.3); margin-top: 12px; }}
+    div[data-testid="stDownloadButton"] button {{ background-color: {AMARELO}; color: {AZUL}; border: none; border-radius: 8px; padding: 16px 20px; font-weight: 700; font-size: 15px; width: 100%; transition: all 0.2s; box-shadow: 0 4px 12px rgba(245, 185, 58, 0.3); margin-top: 12px; }}
 </style>
 """, unsafe_allow_html=True)
 
 
+# ==========================================
+# CARREGAR DADOS
+# ==========================================
 @st.cache_data
 def carregar_dados():
     caminho = Path(__file__).parent.parent / "dados" / "nascidos_caucaia.json"
@@ -103,8 +110,8 @@ dados = carregar_dados()
 por_ano_historico = {k: v for k, v in dados['por_ano'].items() if k != '2026'}
 anos_hist = sorted(por_ano_historico.keys())
 valores_hist = [por_ano_historico[a] for a in anos_hist]
-media_anual = int(sum(valores_hist) / len(valores_hist))
 
+media_anual = int(sum(valores_hist) / len(valores_hist))
 ultimo = anos_hist[-1]
 penultimo = anos_hist[-2]
 var_ano = por_ano_historico[ultimo] - por_ano_historico[penultimo]
@@ -139,9 +146,13 @@ total_2026_2030 = sum(valores_projetados)
 media_projetada = int(total_2026_2030 / 5)
 
 
+# ==========================================
+# FUNCAO PDF
+# ==========================================
 def gerar_relatorio_pdf():
     buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=2*cm, leftMargin=2*cm, topMargin=2*cm, bottomMargin=2*cm)
+    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=2*cm, leftMargin=2*cm, topMargin=2*cm, bottomMargin=2*cm,
+        title="Relatorio de Nascidos Vivos - Caucaia", author="Observatorio da Primeira Infancia de Caucaia")
     styles = getSampleStyleSheet()
     story = []
     cor_azul = colors.HexColor(AZUL)
@@ -158,12 +169,44 @@ def gerar_relatorio_pdf():
     story.append(Spacer(1, 1*cm))
     story.append(Paragraph("1. SUMARIO EXECUTIVO", subtitulo))
     tendencia_txt = "crescimento" if coef[0] > 0 else "reducao"
-    story.append(Paragraph(f"Total: <b>{fmt(dados['total_nascimentos'])} nascimentos</b>. Media anual: <b>{fmt(media_anual)}</b>. Tendencia: <b>{tendencia_txt}</b>.", corpo))
+    texto = f"""
+    Este relatorio apresenta a analise dos nascidos vivos no municipio de Caucaia 
+    no periodo de <b>{anos_hist[0]} a {anos_hist[-1]}</b>, totalizando 
+    <b>{fmt(dados['total_nascimentos'])} nascimentos</b> registrados no SINASC.
+    <br/><br/>
+    A media anual foi de <b>{fmt(media_anual)} criancas</b>. 
+    Tendencia: <b>{tendencia_txt}</b> de aproximadamente <b>{abs(coef[0]):.0f} nascimentos/ano</b>, 
+    com projecao de <b>{fmt(total_2026_2030)} nascimentos</b> para 2026-2030.
+    """
+    story.append(Paragraph(texto, corpo))
+    story.append(Spacer(1, 0.5*cm))
+
+    dados_tabela = [
+        ['Indicador', 'Valor'],
+        ['Total de Nascidos Vivos', fmt(dados['total_nascimentos'])],
+        ['Media Anual', fmt(media_anual)],
+        ['Periodo', f'{anos_hist[0]} a {anos_hist[-1]}'],
+        ['Peso Medio ao Nascer', f"{dados['estatisticas']['peso_medio_g']:.0f} g"],
+        ['Idade Media das Maes', f"{dados['estatisticas']['idade_media_mae']} anos"],
+    ]
+    tabela = Table(dados_tabela, colWidths=[10*cm, 6*cm])
+    tabela.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), cor_azul),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor("#DDDDDD")),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+    ]))
+    story.append(tabela)
     doc.build(story)
     buffer.seek(0)
     return buffer.getvalue()
 
 
+# ==========================================
+# CABECALHO + PDF
+# ==========================================
 st.markdown(f"""
 <div style="padding: 16px 0; border-bottom: 2px solid {AZUL_CLARO}; margin-bottom: 24px;">
     <p style="font-size: 13px; color: #888; margin: 0 0 12px 0; font-weight: 500;">
@@ -181,31 +224,30 @@ st.markdown(f"""
 col_espaco, col_btn = st.columns([4, 1])
 with col_btn:
     pdf_bytes = gerar_relatorio_pdf()
-    st.download_button(
-        label="📄 Baixar Relatório PDF",
-        data=pdf_bytes,
+    st.download_button(label="📄 Baixar Relatório PDF", data=pdf_bytes,
         file_name=f"relatorio_nascidos_vivos_caucaia_{datetime.now().strftime('%Y%m%d')}.pdf",
-        mime="application/pdf",
-        use_container_width=True,
-        key="btn_pdf_top",
-        type="primary"
-    )
+        mime="application/pdf", use_container_width=True, key="btn_pdf_top", type="primary")
 
+
+# ==========================================
+# KPIs PRINCIPAIS
+# ==========================================
 col_principal, col_espaco, col_kpi1, col_kpi2, col_kpi3 = st.columns([2, 0.3, 1, 1, 1])
 
 with col_principal:
     kpi_destaque("Total de Nascidos Vivos no Periodo Historico", fmt(dados['total_nascimentos']), f"Media anual: {fmt(media_anual)} nascimentos")
-
 with col_kpi1:
     sinal = "+" if var_ano >= 0 else "-"
     kpi_card(f"Variacao {ultimo} vs {penultimo}", f"{sinal}{fmt(abs(var_ano))}", f"{pct_var:+.1f}%", cor=VERDE if var_ano >= 0 else CORAL)
-
 with col_kpi2:
     kpi_card("Peso Medio ao Nascer", f"{dados['estatisticas']['peso_medio_g']:.0f} g")
-
 with col_kpi3:
     kpi_card("Idade Media das Maes", f"{dados['estatisticas']['idade_media_mae']} anos")
 
+
+# ==========================================
+# EVOLUCAO E PROJECAO
+# ==========================================
 st.markdown('<div class="secao-titulo">Evolucao Historica e Projecao</div>', unsafe_allow_html=True)
 
 fig_hist = go.Figure()
@@ -223,10 +265,13 @@ fig_hist.update_layout(height=450, margin=dict(l=20, r=20, t=40, b=40),
     legend=dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5))
 st.plotly_chart(fig_hist, use_container_width=True)
 
-st.markdown(f'<div class="info-projecao"><strong>Nota metodologica:</strong> Projecao por regressao linear.</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="info-projecao"><strong>Nota metodologica:</strong> Projecao por regressao linear com base nos dados historicos.</div>', unsafe_allow_html=True)
 
+
+# ==========================================
+# CARDS DE PROJECAO
+# ==========================================
 st.markdown('<div class="secao-titulo">Projecao para 2026-2030</div>', unsafe_allow_html=True)
-
 col1, col2, col3, col4 = st.columns(4)
 with col1:
     kpi_card("Total Projetado", fmt(total_2026_2030))
@@ -239,6 +284,10 @@ with col3:
 with col4:
     kpi_card("Projecao 2030", fmt(valores_projetados[-1]))
 
+
+# ==========================================
+# TABELA DE PROJECAO
+# ==========================================
 st.markdown("**Detalhamento por Ano:**")
 
 css_tabela = """
@@ -259,6 +308,10 @@ for i, ano in enumerate(anos_projecao):
 html_tabela += '</tbody></table>'
 st.markdown(html_tabela, unsafe_allow_html=True)
 
+
+# ==========================================
+# SEXO E PARTO
+# ==========================================
 col1, col2 = st.columns(2)
 with col1:
     st.markdown('<div class="secao-titulo">Distribuicao por Sexo</div>', unsafe_allow_html=True)
@@ -280,6 +333,10 @@ with col2:
     fig_parto.update_layout(height=360, margin=dict(l=20, r=20, t=20, b=20), paper_bgcolor=BRANCO)
     st.plotly_chart(fig_parto, use_container_width=True)
 
+
+# ==========================================
+# PRE-NATAL
+# ==========================================
 st.markdown('<div class="secao-titulo">Cobertura de Pre-Natal</div>', unsafe_allow_html=True)
 ordem_prenatal = ['Nenhuma', 'de 1 a 3', 'de 4 a 6', '7 e mais', 'Ignorado']
 dados_prenatal_ordenado = {k: dados['por_prenatal'][k] for k in ordem_prenatal if k in dados['por_prenatal']}
@@ -291,6 +348,85 @@ fig_prenatal.update_layout(height=320, margin=dict(l=20, r=80, t=20, b=40),
     plot_bgcolor=BRANCO, paper_bgcolor=BRANCO, showlegend=False)
 st.plotly_chart(fig_prenatal, use_container_width=True)
 
+
+# ==========================================
+# PESO AO NASCER
+# ==========================================
+st.markdown('<div class="secao-titulo">Distribuicao de Peso ao Nascer</div>', unsafe_allow_html=True)
+ordem_peso = ['Menos de 500 g', '500 a 999g', '1000 a 1499g', '1500 a 2499g', '2500 a 2999g', '3000 a 3999g', '4000g e mais', 'Ign']
+dados_peso_ordenado = {k: dados['por_peso'][k] for k in ordem_peso if k in dados['por_peso']}
+cores_peso = {'Menos de 500 g': CORAL, '500 a 999g': CORAL, '1000 a 1499g': CORAL, '1500 a 2499g': AMARELO, '2500 a 2999g': VERDE, '3000 a 3999g': VERDE, '4000g e mais': AMARELO, 'Ign': '#CCCCCC'}
+fig_peso = go.Figure(data=[go.Bar(
+    x=list(dados_peso_ordenado.values()), y=list(dados_peso_ordenado.keys()), orientation='h',
+    marker=dict(color=[cores_peso.get(k, AZUL) for k in dados_peso_ordenado.keys()], line=dict(color=BRANCO, width=1)),
+    text=[fmt(v) for v in dados_peso_ordenado.values()], textposition='outside', textfont=dict(size=12, color=GRAFITE))])
+fig_peso.update_layout(height=380, margin=dict(l=20, r=80, t=20, b=40),
+    plot_bgcolor=BRANCO, paper_bgcolor=BRANCO, showlegend=False)
+st.plotly_chart(fig_peso, use_container_width=True)
+
+
+# ==========================================
+# FAIXA ETARIA DAS MAES
+# ==========================================
+st.markdown('<div class="secao-titulo">Faixa Etaria das Maes</div>', unsafe_allow_html=True)
+labels_idade = list(dados['por_idade_mae'].keys())
+valores_idade = list(dados['por_idade_mae'].values())
+fig_idade = go.Figure(data=[go.Bar(
+    x=labels_idade, y=valores_idade,
+    marker=dict(color=AZUL, line=dict(color=BRANCO, width=1)),
+    text=[fmt(v) for v in valores_idade], textposition='outside', textfont=dict(size=12, color=GRAFITE))])
+fig_idade.update_layout(height=400, margin=dict(l=20, r=20, t=40, b=40),
+    plot_bgcolor=BRANCO, paper_bgcolor=BRANCO, showlegend=False)
+st.plotly_chart(fig_idade, use_container_width=True)
+
+
+# ==========================================
+# GESTACAO
+# ==========================================
+if 'por_gestacao' in dados:
+    st.markdown('<div class="secao-titulo">Duracao da Gestacao</div>', unsafe_allow_html=True)
+    labels_gest = list(dados['por_gestacao'].keys())
+    valores_gest = list(dados['por_gestacao'].values())
+    fig_gest = go.Figure(data=[go.Bar(
+        x=valores_gest, y=labels_gest, orientation='h',
+        marker=dict(color=VERDE, line=dict(color=BRANCO, width=1)),
+        text=[fmt(v) for v in valores_gest], textposition='outside', textfont=dict(size=12, color=GRAFITE))])
+    fig_gest.update_layout(height=350, margin=dict(l=20, r=80, t=20, b=40),
+        plot_bgcolor=BRANCO, paper_bgcolor=BRANCO, showlegend=False)
+    st.plotly_chart(fig_gest, use_container_width=True)
+
+
+# ==========================================
+# INDICADORES RESUMIDOS
+# ==========================================
+st.markdown('<div class="secao-titulo">Indicadores Resumidos</div>', unsafe_allow_html=True)
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    kpi_card("Peso Medio ao Nascer", f"{dados['estatisticas']['peso_medio_g']:.0f} g")
+    st.markdown("<br>", unsafe_allow_html=True)
+    kpi_card("Peso Minimo", f"{dados['estatisticas']['peso_min_g']} g")
+    st.markdown("<br>", unsafe_allow_html=True)
+    kpi_card("Peso Maximo", f"{dados['estatisticas']['peso_max_g']} g")
+
+with col2:
+    kpi_card("Idade Media das Maes", f"{dados['estatisticas']['idade_media_mae']} anos")
+    st.markdown("<br>", unsafe_allow_html=True)
+    kpi_card("Idade Minima", f"{dados['estatisticas']['idade_min_mae']} anos")
+    st.markdown("<br>", unsafe_allow_html=True)
+    kpi_card("Idade Maxima", f"{dados['estatisticas']['idade_max_mae']} anos")
+
+with col3:
+    kpi_card("Periodo Historico", f"{anos_hist[0]} a {anos_hist[-1]}")
+    st.markdown("<br>", unsafe_allow_html=True)
+    kpi_card("Anos Analisados", f"{len(anos_hist)} anos")
+    st.markdown("<br>", unsafe_allow_html=True)
+    kpi_card("Media Anual", fmt(media_anual))
+
+
+# ==========================================
+# RODAPE
+# ==========================================
 st.markdown(f"""
 <div class="rodape-inst">
     <strong>Fonte dos dados:</strong> SINASC - Sistema de Informacao sobre Nascidos Vivos<br>
