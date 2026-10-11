@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 app.py - Hub de Indicadores
-Página inicial do Streamlit, carregada dentro do iframe no WordPress.
-Card de Nascidos Vivos 100% clicável com URL absoluta.
+Card de Nascidos Vivos 100% clicável via link HTML absoluto.
 """
 
 import streamlit as st
@@ -43,6 +42,7 @@ st.markdown("""
         display: block;
         height: 260px;
         transition: all 0.25s;
+        cursor: pointer;
     }
     .card-link:hover {
         transform: translateY(-6px);
@@ -96,7 +96,10 @@ col1, col2, col3 = st.columns(3)
 # --- CARD 1: NASCIDOS VIVOS (100% CLICÁVEL) ---
 with col1:
     st.markdown(f"""
-    <a class="card-link" href="https://painel-nascidos-caucaia.streamlit.app/Nascidos_Vivos" target="_top">
+    <a class="card-link" 
+       href="https://painel-nascidos-caucaia.streamlit.app/Nascidos_Vivos" 
+       target="_blank" 
+       rel="noopener noreferrer">
         <div class="card-inner">
             <div>
                 <div style="font-size: 38px; margin-bottom: 12px;">👶</div>
@@ -115,7 +118,7 @@ with col1:
                     ● Disponível
                 </span>
                 <span style="float: right; color: {AZUL}; font-size: 12px; font-weight: 600; margin-top: 4px;">
-                    Clique para acessar
+                    Clique para acessar ↗
                 </span>
             </div>
         </div>
