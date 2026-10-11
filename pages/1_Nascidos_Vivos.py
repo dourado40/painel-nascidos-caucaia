@@ -2,7 +2,7 @@
 """
 Painel de Nascidos Vivos - Observatório da Primeira Infância de Caucaia
 Página interna: pages/1_Nascidos_Vivos.py
-Gráficos estáticos com layout harmonioso.
+Gráficos com hover ativo, mas sem barra de ferramentas.
 """
 
 import streamlit as st
@@ -58,12 +58,27 @@ CINZA = "#F5F6F8"
 GRAFITE = "#333333"
 BRANCO = "#FFFFFF"
 
-# ✅ CONFIGURAÇÃO GLOBAL — GRÁFICOS ESTÁTICOS
+# ✅ CONFIGURAÇÃO GLOBAL — HOVER ATIVO, BARRA OCULTA
 PLOTLY_CONFIG = {
-    'staticPlot': True,
-    'displayModeBar': False,
+    'staticPlot': False,          # mantém o hover funcionando
+    'displayModeBar': False,      # esconde a barra de ferramentas
     'displaylogo': False,
-    'scrollZoom': False,
+    'scrollZoom': False,          # desativa zoom com scroll
+    'doubleClick': False,         # desativa zoom ao dar duplo clique
+    'showTips': False,            # esconde "dicas" do Plotly
+    'editable': False,
+    'edits': {
+        'annotationPosition': False,
+        'annotationTail': False,
+        'annotationText': False,
+        'axisTitleText': False,
+        'colorbarPosition': False,
+        'colorbarTitleText': False,
+        'legendPosition': False,
+        'legendText': False,
+        'shapePosition': False,
+        'titleText': False,
+    },
 }
 
 
@@ -375,24 +390,27 @@ with col_kpi3:
 
 
 # ==========================================
-# EVOLUCAO E PROJECAO (COM ESPACO NO TOPO)
+# EVOLUCAO E PROJECAO
 # ==========================================
 st.markdown('<div class="secao-titulo">Evolução Histórica e Projeção (2014-2030)</div>', unsafe_allow_html=True)
 
-# Calcula range Y com folga para não cortar
 y_min = min(min(valores_hist), min(valores_pessimista)) - 300
 y_max = max(max(valores_hist), max(valores_otimista)) + 300
 
 fig_hist = go.Figure()
 fig_hist.add_trace(go.Scatter(x=anos_hist, y=valores_hist, mode='lines+markers', name='Histórico',
-    line=dict(color=AZUL, width=3), marker=dict(size=10, color=AZUL, line=dict(color=BRANCO, width=2))))
+    line=dict(color=AZUL, width=3), marker=dict(size=10, color=AZUL, line=dict(color=BRANCO, width=2)),
+    hovertemplate='<b>%{x}</b><br>%{y:,.0f} nascimentos<extra></extra>'))
 fig_hist.add_trace(go.Scatter(x=anos_projecao, y=valores_projetados, mode='lines+markers', name='Projeção Realista',
     line=dict(color=AMARELO, width=3, dash='dash'),
-    marker=dict(size=10, color=AMARELO, symbol='diamond', line=dict(color=BRANCO, width=2))))
+    marker=dict(size=10, color=AMARELO, symbol='diamond', line=dict(color=BRANCO, width=2)),
+    hovertemplate='<b>%{x}</b><br>Projeção: %{y:,.0f}<extra></extra>'))
 fig_hist.add_trace(go.Scatter(x=anos_projecao, y=valores_otimista, mode='lines', name='Cenário Otimista',
-    line=dict(color=VERDE, width=1.5, dash='dot')))
+    line=dict(color=VERDE, width=1.5, dash='dot'),
+    hovertemplate='<b>%{x}</b><br>Otimista: %{y:,.0f}<extra></extra>'))
 fig_hist.add_trace(go.Scatter(x=anos_projecao, y=valores_pessimista, mode='lines', name='Cenário Pessimista',
-    line=dict(color=CORAL, width=1.5, dash='dot')))
+    line=dict(color=CORAL, width=1.5, dash='dot'),
+    hovertemplate='<b>%{x}</b><br>Pessimista: %{y:,.0f}<extra></extra>'))
 
 fig_hist.add_vline(x=2025.5, line_width=2, line_dash="solid", line_color="#999999",
     annotation_text="Início da Projeção", annotation_position="top",
@@ -470,7 +488,8 @@ with col1:
         marker=dict(colors=[AZUL, AMARELO], line=dict(color=BRANCO, width=3)),
         textinfo='label+percent',
         textfont=dict(size=14, color=BRANCO, family="Arial"),
-        insidetextorientation='horizontal'
+        insidetextorientation='horizontal',
+        hovertemplate='<b>%{label}</b><br>%{value:,.0f} nascidos<br>%{percent}<extra></extra>'
     )])
     fig_sexo.update_layout(height=380, margin=dict(l=20, r=20, t=30, b=30),
         paper_bgcolor=BRANCO,
@@ -490,7 +509,8 @@ with col2:
         marker=dict(colors=cores_parto, line=dict(color=BRANCO, width=3)),
         textinfo='label+percent',
         textfont=dict(size=14, color=BRANCO, family="Arial"),
-        insidetextorientation='horizontal'
+        insidetextorientation='horizontal',
+        hovertemplate='<b>%{label}</b><br>%{value:,.0f} nascidos<br>%{percent}<extra></extra>'
     )])
     fig_parto.update_layout(height=380, margin=dict(l=20, r=20, t=30, b=30),
         paper_bgcolor=BRANCO,
@@ -514,7 +534,8 @@ fig_prenatal = go.Figure(data=[go.Bar(
     marker=dict(color=AZUL, line=dict(color=BRANCO, width=1)),
     text=[fmt(v) for v in dados_prenatal_ordenado.values()],
     textposition='outside',
-    textfont=dict(size=13, color=GRAFITE, family="Arial")
+    textfont=dict(size=13, color=GRAFITE, family="Arial"),
+    hovertemplate='<b>%{y}</b><br>%{x:,.0f} mães<extra></extra>'
 )])
 fig_prenatal.update_layout(
     height=340, margin=dict(l=20, r=100, t=30, b=50),
@@ -544,7 +565,8 @@ fig_peso = go.Figure(data=[go.Bar(
     marker=dict(color=[cores_peso.get(k, AZUL) for k in dados_peso_ordenado.keys()], line=dict(color=BRANCO, width=1)),
     text=[fmt(v) for v in dados_peso_ordenado.values()],
     textposition='outside',
-    textfont=dict(size=13, color=GRAFITE, family="Arial")
+    textfont=dict(size=13, color=GRAFITE, family="Arial"),
+    hovertemplate='<b>%{y}</b><br>%{x:,.0f} bebês<extra></extra>'
 )])
 fig_peso.update_layout(
     height=400, margin=dict(l=20, r=100, t=30, b=50),
@@ -571,7 +593,8 @@ fig_idade = go.Figure(data=[go.Bar(
     marker=dict(color=AZUL, line=dict(color=BRANCO, width=1)),
     text=[fmt(v) for v in valores_idade],
     textposition='outside',
-    textfont=dict(size=13, color=GRAFITE, family="Arial")
+    textfont=dict(size=13, color=GRAFITE, family="Arial"),
+    hovertemplate='<b>%{x}</b><br>%{y:,.0f} mães<extra></extra>'
 )])
 fig_idade.update_layout(
     height=420, margin=dict(l=60, r=40, t=40, b=60),
@@ -600,7 +623,8 @@ if 'por_gestacao' in dados:
         marker=dict(color=VERDE, line=dict(color=BRANCO, width=1)),
         text=[fmt(v) for v in valores_gest],
         textposition='outside',
-        textfont=dict(size=13, color=GRAFITE, family="Arial")
+        textfont=dict(size=13, color=GRAFITE, family="Arial"),
+        hovertemplate='<b>%{y}</b><br>%{x:,.0f} bebês<extra></extra>'
     )])
     fig_gest.update_layout(
         height=370, margin=dict(l=20, r=100, t=30, b=50),
