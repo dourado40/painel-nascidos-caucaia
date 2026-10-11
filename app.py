@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 app.py - Hub de Indicadores
-Card de Nascidos Vivos 100% clicável via link HTML absoluto.
+Página inicial do Streamlit, carregada dentro do iframe no WordPress.
 """
 
 import streamlit as st
@@ -36,32 +36,22 @@ st.markdown("""
     iframe[title*="streamlit"] { display: none !important; }
     .stApp { background-color: #FFFFFF; }
 
-    /* ===== CARD CLICÁVEL ===== */
-    .card-link {
-        text-decoration: none !important;
-        display: block;
-        height: 260px;
-        transition: all 0.25s;
-        cursor: pointer;
+    /* Botao primary azul */
+    div.stButton > button[kind="primary"] {
+        background-color: #1F3A6E !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 14px 20px !important;
+        font-weight: 700 !important;
+        font-size: 15px !important;
+        transition: all 0.2s !important;
+        box-shadow: 0 4px 12px rgba(31, 58, 110, 0.25) !important;
     }
-    .card-link:hover {
-        transform: translateY(-6px);
-    }
-    .card-link .card-inner {
-        background: white;
-        border-left: 4px solid #1F3A6E;
-        padding: 24px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(31, 58, 110, 0.1);
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        box-sizing: border-box;
-        transition: all 0.25s;
-    }
-    .card-link:hover .card-inner {
-        box-shadow: 0 10px 24px rgba(31, 58, 110, 0.25);
+    div.stButton > button[kind="primary"]:hover {
+        background-color: #16305A !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 16px rgba(31, 58, 110, 0.35) !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -93,44 +83,41 @@ st.markdown(f"""
 # ==========================================
 col1, col2, col3 = st.columns(3)
 
-# --- CARD 1: NASCIDOS VIVOS (100% CLICÁVEL) ---
+# --- CARD 1: NASCIDOS VIVOS ---
 with col1:
     st.markdown(f"""
-    <a class="card-link" 
-       href="https://painel-nascidos-caucaia.streamlit.app/Nascidos_Vivos" 
-       target="_blank" 
-       rel="noopener noreferrer">
-        <div class="card-inner">
-            <div>
-                <div style="font-size: 38px; margin-bottom: 12px;">👶</div>
-                <h3 style="color: {AZUL}; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
-                    Nascidos Vivos →
-                </h3>
-                <p style="color: #666; font-size: 13px; margin: 0; line-height: 1.5;">
-                    Total de nascimentos, perfil das mães, tipo de parto, peso ao nascer 
-                    e projeções para os próximos anos.
-                </p>
-            </div>
-            <div style="margin-top: 12px;">
-                <span style="display: inline-block; background: {VERDE}; color: white; 
-                             padding: 4px 10px; border-radius: 12px; font-size: 10px; 
-                             font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                    ● Disponível
-                </span>
-                <span style="float: right; color: {AZUL}; font-size: 12px; font-weight: 600; margin-top: 4px;">
-                    Clique para acessar ↗
-                </span>
-            </div>
+    <div style="background: white; border-left: 4px solid {AZUL}; padding: 24px; 
+                border-radius: 8px; box-shadow: 0 4px 12px rgba(31, 58, 110, 0.1); 
+                height: 200px; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+            <div style="font-size: 38px; margin-bottom: 12px;">👶</div>
+            <h3 style="color: {AZUL}; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
+                Nascidos Vivos
+            </h3>
+            <p style="color: #666; font-size: 13px; margin: 0; line-height: 1.5;">
+                Total de nascimentos, perfil das mães, tipo de parto, peso ao nascer 
+                e projeções para os próximos anos.
+            </p>
         </div>
-    </a>
+        <div style="margin-top: 12px;">
+            <span style="display: inline-block; background: {VERDE}; color: white; 
+                         padding: 4px 10px; border-radius: 12px; font-size: 10px; 
+                         font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                ● Disponível
+            </span>
+        </div>
+    </div>
     """, unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
+    if st.button("📊 Acessar Painel →", key="btn_card_nascidos", use_container_width=True, type="primary"):
+        st.switch_page("pages/1_Nascidos_Vivos.py")
 
 # --- CARD 2: MORTALIDADE INFANTIL ---
 with col2:
     st.markdown(f"""
     <div style="background: white; border-left: 4px solid {CORAL}; padding: 24px; 
                 border-radius: 8px; box-shadow: 0 4px 12px rgba(232, 155, 125, 0.1); 
-                height: 260px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
+                height: 250px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
         <div>
             <div style="font-size: 38px; margin-bottom: 12px;">📉</div>
             <h3 style="color: {AZUL}; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
@@ -156,7 +143,7 @@ with col3:
     st.markdown(f"""
     <div style="background: white; border-left: 4px solid {VERDE}; padding: 24px; 
                 border-radius: 8px; box-shadow: 0 4px 12px rgba(93, 181, 168, 0.1); 
-                height: 260px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
+                height: 250px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
         <div>
             <div style="font-size: 38px; margin-bottom: 12px;">🎓</div>
             <h3 style="color: {AZUL}; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
@@ -186,7 +173,7 @@ with col1:
     st.markdown(f"""
     <div style="background: white; border-left: 4px solid {AMARELO}; padding: 24px; 
                 border-radius: 8px; box-shadow: 0 4px 12px rgba(245, 185, 58, 0.1); 
-                height: 260px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
+                height: 250px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
         <div>
             <div style="font-size: 38px; margin-bottom: 12px;">💉</div>
             <h3 style="color: {AZUL}; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
@@ -210,7 +197,7 @@ with col2:
     st.markdown(f"""
     <div style="background: white; border-left: 4px solid {AZUL_CLARO}; padding: 24px; 
                 border-radius: 8px; box-shadow: 0 4px 12px rgba(168, 200, 232, 0.1); 
-                height: 260px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
+                height: 250px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
         <div>
             <div style="font-size: 38px; margin-bottom: 12px;">🍼</div>
             <h3 style="color: {AZUL}; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
@@ -234,7 +221,7 @@ with col3:
     st.markdown(f"""
     <div style="background: white; border-left: 4px solid #C8A8E8; padding: 24px; 
                 border-radius: 8px; box-shadow: 0 4px 12px rgba(200, 168, 232, 0.1); 
-                height: 260px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
+                height: 250px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
         <div>
             <div style="font-size: 38px; margin-bottom: 12px;">👨‍👩‍👧</div>
             <h3 style="color: {AZUL}; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
