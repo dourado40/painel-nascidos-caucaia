@@ -2,8 +2,8 @@
 """
 Painel de Nascidos Vivos - Observatório da Primeira Infância de Caucaia
 Página interna: pages/1_Nascidos_Vivos.py
-Projeção estendida até 2031 (final do PMPI).
-Histórico e projeção separados corretamente no tooltip.
+Tooltip do gráfico de evolução: histórico APENAS mostra histórico,
+projeção APENAS mostra projeção.
 """
 
 import streamlit as st
@@ -190,11 +190,7 @@ baixo_peso = sum(v for k, v in dados['por_peso'].items() if any(x in k for x in 
 
 def gerar_relatorio_pdf():
     buffer = BytesIO()
-    doc = SimpleDocTemplate(
-        buffer, pagesize=A4,
-        rightMargin=2*cm, leftMargin=2*cm, topMargin=2*cm, bottomMargin=2*cm,
-        title="Relatorio de Nascidos Vivos - Caucaia"
-    )
+    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=2*cm, leftMargin=2*cm, topMargin=2*cm, bottomMargin=2*cm)
     styles = getSampleStyleSheet()
     story = []
     cor_azul = colors.HexColor(AZUL)
@@ -264,7 +260,9 @@ with col_kpi3:
 
 
 # ==========================================
-# EVOLUCAO — Histórico e Projeção SEPARADOS
+# EVOLUÇÃO — SOLUÇÃO DEFINITIVA
+# Cada trace de projeção recebe customdata que retorna None
+# para o período histórico, e o hovertemplate omite a linha se for None.
 # ==========================================
 st.markdown(f'<div class="secao-titulo">Evolução Histórica e Projeção (2014-{ANO_FINAL_PMPI})</div>', unsafe_allow_html=True)
 st.markdown('<div class="secao-subtitulo">Passe o mouse sobre o gráfico para ver o número de nascidos em cada ano. A linha vertical marca o início da projeção.</div>', unsafe_allow_html=True)
@@ -272,54 +270,61 @@ st.markdown('<div class="secao-subtitulo">Passe o mouse sobre o gráfico para ve
 y_min = min(min(valores_hist), min(valores_pessimista)) - 300
 y_max = max(max(valores_hist), max(valores_otimista)) + 300
 
+# Junta todos os anos (histórico + projeção) para o eixo X
+todos_anos = sorted(set([int(a) for a in anos_hist] + anos_projecao))
+
+# Para cada trace, cria uma lista com None onde a trace não tem valor
+# Realista
+x_realista = [int(a) for a in anos_hist] + anos_projecao
+y_realista = valores_hist + [None] * len(anos_projecao)
+
+# Realista (não aparece no histórico)
+y_realista_proj = [None] * len(anos_hist) + valores_projetados
+
+# Otimista (não aparece no histórico)
+y_otimista_proj = [None] * len(anos_hist) + valores_otimista
+
+# Pessimista (não aparece no histórico)
+y_pessimista_proj = [None] * len(anos_hist) + valores_pessimista
+
 fig_hist = go.Figure()
 
-# =============================================
-# HISTÓRICO — Só mostra valores para anos_hist
-# =============================================
+# TRACE 1: Histórico — aparece apenas onde tem valor
 fig_hist.add_trace(go.Scatter(
-    x=anos_hist, y=valores_hist,
+    x=x_realista, y=y_realista,
     mode='lines+markers', name='Histórico',
     line=dict(color=AZUL, width=3),
     marker=dict(size=14, color=AZUL, line=dict(color=BRANCO, width=2)),
-    hovertemplate='<b>📅 Ano %{x}</b><br><b>👶 Nascidos:</b> %{y:,.0f}<extra></extra>'
+    hovertemplate='<b>📅 Ano %{x}</b><br><b>👶 Histórico:</b> %{y:,.0f}<extra></extra>',
+    connectgaps=False,
 ))
 
-# =============================================
-# PROJEÇÕES — Separadas para não vazar para o passado
-# Cada trace começa em 2025 (com None) e só tem valores a partir de 2026
-# =============================================
-x_com_2025 = [2025] + anos_projecao  # [2025, 2026, 2027, ..., 2031]
-
-# Realista
-y_realista_com_2025 = [None] + valores_projetados
+# TRACE 2: Projeção Realista — aparece apenas a partir de 2026
 fig_hist.add_trace(go.Scatter(
-    x=x_com_2025, y=y_realista_com_2025,
+    x=x_realista, y=y_realista_proj,
     mode='lines+markers', name='Projeção Realista',
     line=dict(color=AMARELO, width=3, dash='dash'),
     marker=dict(size=14, color=AMARELO, symbol='diamond', line=dict(color=BRANCO, width=2)),
     hovertemplate='<b>📊 Realista:</b> %{y:,.0f}<extra></extra>',
-    connectgaps=False
+    connectgaps=False,
 ))
 
-# Otimista
-y_otimista_com_2025 = [None] + valores_otimista
+# TRACE 3: Otimista
 fig_hist.add_trace(go.Scatter(
-    x=x_com_2025, y=y_otimista_com_2025,
+    x=x_realista, y=y_otimista_proj,
     mode='lines', name='Cenário Otimista',
     line=dict(color=VERDE, width=1.5, dash='dot'),
     hovertemplate='<b>📈 Otimista:</b> %{y:,.0f}<extra></extra>',
-    connectgaps=False
+    connectgaps=False,
 ))
 
-# Pessimista
-y_pessimista_com_2025 = [None] + valores_pessimista
+# TRACE 4: Pessimista
 fig_hist.add_trace(go.Scatter(
-    x=x_com_2025, y=y_pessimista_com_2025,
+    x=x_realista, y=y_pessimista_proj,
     mode='lines', name='Cenário Pessimista',
     line=dict(color=CORAL, width=1.5, dash='dot'),
     hovertemplate='<b>📉 Pessimista:</b> %{y:,.0f}<extra></extra>',
-    connectgaps=False
+    connectgaps=False,
 ))
 
 fig_hist.add_vline(x=2025.5, line_width=2, line_dash="solid", line_color="#999999",
