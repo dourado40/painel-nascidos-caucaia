@@ -2,7 +2,6 @@
 """
 app.py - Hub de Indicadores
 Página inicial do Streamlit, carregada dentro do iframe no WordPress.
-Card de Nascidos Vivos 100% clicável.
 """
 
 import streamlit as st
@@ -36,6 +35,24 @@ st.markdown("""
     a[href*="streamlit.io/cloud"] { display: none !important; }
     iframe[title*="streamlit"] { display: none !important; }
     .stApp { background-color: #FFFFFF; }
+
+    /* Estilo do botao primary */
+    div.stButton > button[kind="primary"] {
+        background-color: #1F3A6E !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 14px 20px !important;
+        font-weight: 700 !important;
+        font-size: 15px !important;
+        transition: all 0.2s !important;
+        box-shadow: 0 4px 12px rgba(31, 58, 110, 0.25) !important;
+    }
+    div.stButton > button[kind="primary"]:hover {
+        background-color: #16305A !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 16px rgba(31, 58, 110, 0.35) !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -66,107 +83,41 @@ st.markdown(f"""
 # ==========================================
 col1, col2, col3 = st.columns(3)
 
-# --- CARD 1: NASCIDOS VIVOS (100% CLICÁVEL) ---
+# --- CARD 1: NASCIDOS VIVOS ---
 with col1:
-    # CSS específico do card
     st.markdown(f"""
-    <style>
-        /* Wrapper do card: relative, para posicionar o botao invisivel por cima */
-        .card-hub-wrapper {{
-            position: relative;
-            height: 260px;
-            margin-bottom: 0;
-        }}
-        /* Conteudo visual do card */
-        .card-hub-content {{
-            background: white;
-            border-left: 4px solid {AZUL};
-            padding: 24px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(31, 58, 110, 0.1);
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition: all 0.25s;
-            box-sizing: border-box;
-        }}
-        /* Hover: o card levanta */
-        .card-hub-wrapper:hover .card-hub-content {{
-            transform: translateY(-6px);
-            box-shadow: 0 10px 24px rgba(31, 58, 110, 0.25);
-        }}
-        /* O botao invisivel que cobre 100% do card */
-        .btn-card-invisivel button {{
-            position: absolute !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            opacity: 0 !important;
-            background: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-            cursor: pointer !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            color: transparent !important;
-            z-index: 10 !important;
-        }}
-        /* Remove qualquer margem extra do botao */
-        .btn-card-invisivel {{
-            position: absolute !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            pointer-events: none;
-        }}
-        /* Habilita pointer-events apenas no botao */
-        .btn-card-invisivel button {{
-            pointer-events: auto !important;
-        }}
-    </style>
-    <div class="card-hub-wrapper">
-        <div class="card-hub-content">
-            <div>
-                <div style="font-size: 38px; margin-bottom: 12px;">👶</div>
-                <h3 style="color: {AZUL}; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
-                    Nascidos Vivos →
-                </h3>
-                <p style="color: #666; font-size: 13px; margin: 0; line-height: 1.5;">
-                    Total de nascimentos, perfil das mães, tipo de parto, peso ao nascer 
-                    e projeções para os próximos anos.
-                </p>
-            </div>
-            <div style="margin-top: 12px;">
-                <span style="display: inline-block; background: {VERDE}; color: white; 
-                             padding: 4px 10px; border-radius: 12px; font-size: 10px; 
-                             font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                    ● Disponível
-                </span>
-                <span style="float: right; color: {AZUL}; font-size: 12px; font-weight: 600; margin-top: 4px;">
-                    Clique para acessar
-                </span>
-            </div>
+    <div style="background: white; border-left: 4px solid {AZUL}; padding: 24px; 
+                border-radius: 8px; box-shadow: 0 4px 12px rgba(31, 58, 110, 0.1); 
+                height: 200px; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+            <div style="font-size: 38px; margin-bottom: 12px;">👶</div>
+            <h3 style="color: {AZUL}; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
+                Nascidos Vivos
+            </h3>
+            <p style="color: #666; font-size: 13px; margin: 0; line-height: 1.5;">
+                Total de nascimentos, perfil das mães, tipo de parto, peso ao nascer 
+                e projeções para os próximos anos.
+            </p>
+        </div>
+        <div style="margin-top: 12px;">
+            <span style="display: inline-block; background: {VERDE}; color: white; 
+                         padding: 4px 10px; border-radius: 12px; font-size: 10px; 
+                         font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                ● Disponível
+            </span>
         </div>
     </div>
     """, unsafe_allow_html=True)
-
-    # Wrapper do botao invisivel - posicionado exatamente sobre o card
-    st.markdown('<div class="btn-card-invisivel">', unsafe_allow_html=True)
-    if st.button("👶", key="btn_card_nascidos", use_container_width=True):
+    st.markdown("<br>", unsafe_allow_html=True)
+    if st.button("📊 Acessar Painel →", key="btn_card_nascidos", use_container_width=True, type="primary"):
         st.switch_page("pages/1_Nascidos_Vivos.py")
-    st.markdown('</div>', unsafe_allow_html=True)
 
 # --- CARD 2: MORTALIDADE INFANTIL ---
 with col2:
     st.markdown(f"""
     <div style="background: white; border-left: 4px solid {CORAL}; padding: 24px; 
                 border-radius: 8px; box-shadow: 0 4px 12px rgba(232, 155, 125, 0.1); 
-                height: 260px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
+                height: 250px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
         <div>
             <div style="font-size: 38px; margin-bottom: 12px;">📉</div>
             <h3 style="color: {AZUL}; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
@@ -192,7 +143,7 @@ with col3:
     st.markdown(f"""
     <div style="background: white; border-left: 4px solid {VERDE}; padding: 24px; 
                 border-radius: 8px; box-shadow: 0 4px 12px rgba(93, 181, 168, 0.1); 
-                height: 260px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
+                height: 250px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
         <div>
             <div style="font-size: 38px; margin-bottom: 12px;">🎓</div>
             <h3 style="color: {AZUL}; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
@@ -222,7 +173,7 @@ with col1:
     st.markdown(f"""
     <div style="background: white; border-left: 4px solid {AMARELO}; padding: 24px; 
                 border-radius: 8px; box-shadow: 0 4px 12px rgba(245, 185, 58, 0.1); 
-                height: 260px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
+                height: 250px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
         <div>
             <div style="font-size: 38px; margin-bottom: 12px;">💉</div>
             <h3 style="color: {AZUL}; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
@@ -246,7 +197,7 @@ with col2:
     st.markdown(f"""
     <div style="background: white; border-left: 4px solid {AZUL_CLARO}; padding: 24px; 
                 border-radius: 8px; box-shadow: 0 4px 12px rgba(168, 200, 232, 0.1); 
-                height: 260px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
+                height: 250px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
         <div>
             <div style="font-size: 38px; margin-bottom: 12px;">🍼</div>
             <h3 style="color: {AZUL}; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
@@ -270,7 +221,7 @@ with col3:
     st.markdown(f"""
     <div style="background: white; border-left: 4px solid #C8A8E8; padding: 24px; 
                 border-radius: 8px; box-shadow: 0 4px 12px rgba(200, 168, 232, 0.1); 
-                height: 260px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
+                height: 250px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
         <div>
             <div style="font-size: 38px; margin-bottom: 12px;">👨‍👩‍👧</div>
             <h3 style="color: {AZUL}; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
