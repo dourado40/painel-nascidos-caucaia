@@ -2,7 +2,7 @@
 """
 Painel de Nascidos Vivos - Observatório da Primeira Infância de Caucaia
 Página interna: pages/1_Nascidos_Vivos.py
-Gráficos com hover ativo, mas sem barra de ferramentas.
+Projeção estendida até 2031 (final do PMPI).
 """
 
 import streamlit as st
@@ -60,12 +60,12 @@ BRANCO = "#FFFFFF"
 
 # ✅ CONFIGURAÇÃO GLOBAL — HOVER ATIVO, BARRA OCULTA
 PLOTLY_CONFIG = {
-    'staticPlot': False,          # mantém o hover funcionando
-    'displayModeBar': False,      # esconde a barra de ferramentas
+    'staticPlot': False,
+    'displayModeBar': False,
     'displaylogo': False,
-    'scrollZoom': False,          # desativa zoom com scroll
-    'doubleClick': False,         # desativa zoom ao dar duplo clique
-    'showTips': False,            # esconde "dicas" do Plotly
+    'scrollZoom': False,
+    'doubleClick': False,
+    'showTips': False,
     'editable': False,
     'edits': {
         'annotationPosition': False,
@@ -80,6 +80,10 @@ PLOTLY_CONFIG = {
         'titleText': False,
     },
 }
+
+# ✅ HORIZONTE DO PMPI
+ANO_FINAL_PMPI = 2031
+NUM_ANOS_PROJECAO = ANO_FINAL_PMPI - 2025  # 2026 até 2031 = 6 anos
 
 
 def fmt(n):
@@ -161,14 +165,16 @@ anos_numericos = np.array([int(a) for a in anos_hist])
 valores_numericos = np.array(valores_hist)
 coef = np.polyfit(anos_numericos, valores_numericos, 1)
 tendencia = np.poly1d(coef)
-anos_projecao = list(range(2026, 2031))
+
+# ✅ Projeção estendida até 2031
+anos_projecao = list(range(2026, ANO_FINAL_PMPI + 1))  # [2026, 2027, 2028, 2029, 2030, 2031]
 valores_projetados = [int(tendencia(a)) for a in anos_projecao]
 residuos = valores_numericos - tendencia(anos_numericos)
 desvio = np.std(residuos)
 valores_otimista = [int(v + 1.96 * desvio) for v in valores_projetados]
 valores_pessimista = [int(v - 1.96 * desvio) for v in valores_projetados]
-total_2026_2030 = sum(valores_projetados)
-media_projetada = int(total_2026_2030 / 5)
+total_projetado = sum(valores_projetados)
+media_projetada = int(total_projetado / NUM_ANOS_PROJECAO)
 
 # ==========================================
 # ANALISES ADICIONAIS PARA O PDF
@@ -216,6 +222,7 @@ def gerar_relatorio_pdf():
     story.append(Spacer(1, 0.5*cm))
     story.append(Paragraph("RELATÓRIO DE NASCIDOS VIVOS", ParagraphStyle('TitRel', parent=titulo, fontSize=18, spaceAfter=12)))
     story.append(Paragraph(f"Período de análise: {anos_hist[0]} a {anos_hist[-1]}", ParagraphStyle('Periodo', parent=corpo, alignment=TA_CENTER, fontSize=12)))
+    story.append(Paragraph(f"Projeção estendida até {ANO_FINAL_PMPI} (final do PMPI)", ParagraphStyle('Proj', parent=corpo, alignment=TA_CENTER, fontSize=11, textColor=colors.gray)))
     story.append(Paragraph(f"Gerado em: {datetime.now().strftime('%d/%m/%Y às %H:%M')}", ParagraphStyle('Data', parent=corpo, alignment=TA_CENTER, fontSize=10, textColor=colors.gray)))
     story.append(Spacer(1, 1*cm))
 
@@ -228,7 +235,8 @@ def gerar_relatorio_pdf():
     <br/><br/>
     A média anual de nascimentos no período foi de <b>{fmt(media_anual)} crianças</b>. A análise de tendência 
     identificou um cenário de <b>{tendencia_txt}</b> de aproximadamente <b>{abs(coef[0]):.0f} nascimentos por ano</b>, 
-    com projeção de <b>{fmt(total_2026_2030)} nascimentos</b> para o quinquênio 2026-2030.
+    com projeção de <b>{fmt(total_projetado)} nascimentos</b> para o período 2026-{ANO_FINAL_PMPI}, 
+    que corresponde ao horizonte final do Plano Municipal pela Primeira Infância (PMPI).
     <br/><br/>
     O peso médio ao nascer foi de <b>{dados['estatisticas']['peso_medio_g']:.0f} g</b> e a idade média das mães 
     foi de <b>{dados['estatisticas']['idade_media_mae']} anos</b>.
@@ -267,11 +275,14 @@ def gerar_relatorio_pdf():
     story.append(tabela)
 
     story.append(PageBreak())
-    story.append(Paragraph("3. PROJEÇÃO PARA 2026-2030", subtitulo))
+    story.append(Paragraph(f"3. PROJEÇÃO PARA 2026-{ANO_FINAL_PMPI}", subtitulo))
     texto_projecao = f"""
     Com base na análise de regressão linear sobre os dados históricos de {anos_hist[0]} a {anos_hist[-1]}, 
-    projeta-se <b>{fmt(total_2026_2030)} nascimentos</b> no quinquênio 2026-2030, com média anual de 
+    projeta-se <b>{fmt(total_projetado)} nascimentos</b> no período 2026-{ANO_FINAL_PMPI}, com média anual de 
     <b>{fmt(media_projetada)} nascimentos</b>. A tendência identificada é de <b>{tendencia_txt}</b>.
+    <br/><br/>
+    Esta projeção abrange todo o horizonte do Plano Municipal pela Primeira Infância (PMPI), 
+    servindo como base para o dimensionamento de políticas públicas para os próximos anos.
     """
     story.append(Paragraph(texto_projecao, corpo))
     story.append(Spacer(1, 0.5*cm))
@@ -329,7 +340,7 @@ def gerar_relatorio_pdf():
     recs = [
         ("Saúde Materno-Infantil", "Ampliar a cobertura de pré-natal adequado."),
         ("Redução de Cesarianas Desnecessárias", "Implementar protocolos de classificação de risco obstétrico."),
-        ("Educação Infantil", "Dimensionar a oferta de vagas em creches e pré-escolas."),
+        ("Educação Infantil", f"Dimensionar a oferta de vagas em creches e pré-escolas considerando a projeção de {fmt(total_projetado)} nascimentos até {ANO_FINAL_PMPI}."),
         ("Primeira Infância e Assistência Social", "Ampliar a cobertura do Programa Criança Feliz e do SCFV."),
         ("Infraestrutura Urbana", "Priorizar investimentos em espaços públicos amigáveis à Primeira Infância."),
         ("Monitoramento Contínuo", "Manter a atualização anual deste painel."),
@@ -360,7 +371,8 @@ st.markdown(f"""
         Nascidos Vivos em Caucaia
     </h1>
     <p style="color: #555; font-size: 15px; margin: 0;">
-        Análise dos registros de nascimentos no município de {anos_hist[0]} a {anos_hist[-1]}, com base no SINASC.
+        Análise dos registros de nascimentos no município de {anos_hist[0]} a {anos_hist[-1]}, 
+        com projeção até {ANO_FINAL_PMPI} (final do PMPI).
     </p>
 </div>
 """, unsafe_allow_html=True)
@@ -390,9 +402,9 @@ with col_kpi3:
 
 
 # ==========================================
-# EVOLUCAO E PROJECAO
+# EVOLUCAO E PROJECAO (ATÉ 2031)
 # ==========================================
-st.markdown('<div class="secao-titulo">Evolução Histórica e Projeção (2014-2030)</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="secao-titulo">Evolução Histórica e Projeção (2014-{ANO_FINAL_PMPI})</div>', unsafe_allow_html=True)
 
 y_min = min(min(valores_hist), min(valores_pessimista)) - 300
 y_max = max(max(valores_hist), max(valores_otimista)) + 300
@@ -433,16 +445,16 @@ fig_hist.update_layout(
 )
 st.plotly_chart(fig_hist, use_container_width=True, config=PLOTLY_CONFIG)
 
-st.markdown(f'<div class="info-projecao"><strong>Nota metodológica:</strong> A projeção foi calculada por <strong>regressão linear</strong> com base nos dados históricos de {anos_hist[0]} a {anos_hist[-1]}. Os cenários otimista e pessimista representam o intervalo de confiança de 95%.</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="info-projecao"><strong>Nota metodológica:</strong> A projeção foi calculada por <strong>regressão linear</strong> com base nos dados históricos de {anos_hist[0]} a {anos_hist[-1]}. Os cenários otimista e pessimista representam o intervalo de confiança de 95%. Horizonte da projeção estendido até <strong>{ANO_FINAL_PMPI}</strong>, final do Plano Municipal pela Primeira Infância (PMPI).</div>', unsafe_allow_html=True)
 
 
 # ==========================================
 # CARDS DE PROJECAO
 # ==========================================
-st.markdown('<div class="secao-titulo">Projeção para 2026-2030</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="secao-titulo">Projeção para 2026-{ANO_FINAL_PMPI} (Horizonte do PMPI)</div>', unsafe_allow_html=True)
 col1, col2, col3, col4 = st.columns(4)
 with col1:
-    kpi_card("Total Projetado (2026-2030)", fmt(total_2026_2030))
+    kpi_card(f"Total Projetado (2026-{ANO_FINAL_PMPI})", fmt(total_projetado))
 with col2:
     kpi_card("Média Anual Projetada", fmt(media_projetada))
 with col3:
@@ -450,7 +462,7 @@ with col3:
     cor_tend = VERDE if coef[0] > 0 else CORAL
     kpi_card("Tendência Identificada", tendencia_txt, f"{coef[0]:+.0f} nascidos/ano", cor=cor_tend)
 with col4:
-    kpi_card("Projeção 2030", fmt(valores_projetados[-1]))
+    kpi_card(f"Projeção {ANO_FINAL_PMPI}", fmt(valores_projetados[-1]))
 
 
 # ==========================================
@@ -675,6 +687,7 @@ st.markdown(f"""
     <strong>Fonte dos dados:</strong> SINASC - Sistema de Informação sobre Nascidos Vivos<br>
     <strong>Observatório da Primeira Infância de Caucaia</strong><br>
     Prefeitura Municipal de Caucaia - Secretaria Municipal de Saúde<br>
+    <em>Projeção estendida até {ANO_FINAL_PMPI} (final do Plano Municipal pela Primeira Infância)</em><br>
     <em>Última atualização: {datetime.now().strftime('%d/%m/%Y às %H:%M')}</em>
 </div>
 """, unsafe_allow_html=True)
