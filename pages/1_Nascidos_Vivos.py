@@ -40,6 +40,10 @@ st.markdown("""
     a[href*="streamlit.io/cloud"] { display: none !important; }
     iframe[title*="streamlit"] { display: none !important; }
     .stApp { background-color: #FFFFFF; }
+
+    /* Esconde a barra de ferramentas do Plotly */
+    .modebar { display: none !important; }
+    .modebar-container { display: none !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -52,6 +56,13 @@ AZUL_CLARO = "#A8C8E8"
 CINZA = "#F5F6F8"
 GRAFITE = "#333333"
 BRANCO = "#FFFFFF"
+
+# Configuração global para todos os gráficos Plotly
+PLOTLY_CONFIG = {
+    'displayModeBar': False,
+    'displaylogo': False,
+    'staticPlot': False,
+}
 
 
 def fmt(n):
@@ -163,7 +174,7 @@ perc_baixo_peso = (baixo_peso / total_peso) * 100 if total_peso > 0 else 0
 
 
 # ==========================================
-# FUNCAO PDF (AMPLIADO)
+# FUNCAO PDF
 # ==========================================
 def gerar_relatorio_pdf():
     buffer = BytesIO()
@@ -177,8 +188,6 @@ def gerar_relatorio_pdf():
     story = []
     cor_azul = colors.HexColor(AZUL)
     cor_grafite = colors.HexColor(GRAFITE)
-    cor_verde = colors.HexColor(VERDE)
-    cor_amarelo = colors.HexColor(AMARELO)
 
     titulo = ParagraphStyle('Titulo', parent=styles['Heading1'], fontSize=20, textColor=cor_azul, spaceAfter=20, alignment=TA_CENTER, fontName='Helvetica-Bold')
     subtitulo = ParagraphStyle('Subtitulo', parent=styles['Heading2'], fontSize=14, textColor=cor_azul, spaceBefore=16, spaceAfter=10, fontName='Helvetica-Bold')
@@ -277,40 +286,33 @@ def gerar_relatorio_pdf():
     story.append(PageBreak())
     story.append(Paragraph("4. ANÁLISE DE SAÚDE MATERNO-INFANTIL", subtitulo))
 
-    # Cobertura de pré-natal
     story.append(Paragraph("4.1 Cobertura de Pré-Natal", destaque))
     texto_prenatal = f"""
     Das <b>{fmt(total_prenatal)}</b> mães registradas, <b>{fmt(pren_adequado)}</b> (<b>{perc_adequado:.1f}%</b>) 
-    realizaram <b>7 ou mais consultas</b> de pré-natal, o que representa uma cobertura adequada segundo 
-    as recomendações do Ministério da Saúde. No entanto, <b>{fmt(pren_nenhum)}</b> mães 
+    realizaram <b>7 ou mais consultas</b> de pré-natal. No entanto, <b>{fmt(pren_nenhum)}</b> mães 
     (<b>{perc_nenhum:.1f}%</b>) <b>não realizaram nenhuma consulta</b>, o que constitui um ponto de atenção 
     para a gestão municipal.
     """
     story.append(Paragraph(texto_prenatal, corpo))
     story.append(Spacer(1, 0.3*cm))
 
-    # Tipo de parto
     story.append(Paragraph("4.2 Tipo de Parto", destaque))
     texto_parto = f"""
     Do total de partos, <b>{fmt(cesariana)}</b> (<b>{perc_ces:.1f}%</b>) foram cesarianas e <b>{fmt(vaginal)}</b> 
     (<b>{perc_vag:.1f}%</b>) foram partos vaginais.
     <br/><br/>
-    <b>Alerta técnico:</b> a Organização Mundial da Saúde (OMS) recomenda que a taxa de cesarianas 
-    fique entre 10% e 15%. A taxa observada de <b>{perc_ces:.1f}%</b> está significativamente acima 
-    do recomendado, indicando a necessidade de revisão de protocolos e incentivo ao parto normal.
+    <b>Alerta técnico:</b> a OMS recomenda taxa de cesarianas entre 10% e 15%. A taxa observada de 
+    <b>{perc_ces:.1f}%</b> está significativamente acima do recomendado.
     """
     story.append(Paragraph(texto_parto, corpo))
     story.append(Spacer(1, 0.3*cm))
 
-    # Peso ao nascer
     story.append(Paragraph("4.3 Peso ao Nascer", destaque))
     texto_peso = f"""
     A média de peso ao nascer foi de <b>{dados['estatisticas']['peso_medio_g']:.0f} g</b>. Foram registrados 
-    <b>{fmt(baixo_peso)}</b> bebês com <b>peso inferior a 2.500 g</b> (<b>{perc_baixo_peso:.1f}%</b>), 
-    indicador importante de risco para morbidade neonatal e mortalidade infantil.
+    <b>{fmt(baixo_peso)}</b> bebês com <b>peso inferior a 2.500 g</b> (<b>{perc_baixo_peso:.1f}%</b>).
     <br/><br/>
-    O peso mínimo registrado foi de <b>{dados['estatisticas']['peso_min_g']} g</b> e o peso máximo 
-    foi de <b>{dados['estatisticas']['peso_max_g']} g</b>.
+    Peso mínimo: <b>{dados['estatisticas']['peso_min_g']} g</b>. Peso máximo: <b>{dados['estatisticas']['peso_max_g']} g</b>.
     """
     story.append(Paragraph(texto_peso, corpo))
 
@@ -321,12 +323,12 @@ def gerar_relatorio_pdf():
     story.append(Spacer(1, 0.3*cm))
 
     recs = [
-        ("Saúde Materno-Infantil", "Ampliar a cobertura de pré-natal adequado, com meta de reduzir os casos de mães sem nenhuma consulta, especialmente em áreas de maior vulnerabilidade social."),
-        ("Redução de Cesarianas Desnecessárias", "Implementar protocolos de classificação de risco obstétrico e promover o parto humanizado, alinhando-se às recomendações da OMS."),
-        ("Educação Infantil", "Dimensionar a oferta de vagas em creches e pré-escolas para os próximos 5 anos, considerando a projeção de nascimentos e a demanda reprimida."),
-        ("Primeira Infância e Assistência Social", "Ampliar a cobertura do Programa Criança Feliz e do Serviço de Convivência e Fortalecimento de Vínculos (SCFV) para famílias com crianças de 0 a 6 anos."),
-        ("Infraestrutura Urbana", "Priorizar investimentos em espaços públicos amigáveis à Primeira Infância, em linha com o programa Urban95."),
-        ("Monitoramento Contínuo", "Manter a atualização anual deste painel e dos indicadores de Primeira Infância, garantindo dados atualizados para a tomada de decisão."),
+        ("Saúde Materno-Infantil", "Ampliar a cobertura de pré-natal adequado, com meta de reduzir os casos de mães sem nenhuma consulta."),
+        ("Redução de Cesarianas Desnecessárias", "Implementar protocolos de classificação de risco obstétrico e promover o parto humanizado."),
+        ("Educação Infantil", "Dimensionar a oferta de vagas em creches e pré-escolas para os próximos 5 anos."),
+        ("Primeira Infância e Assistência Social", "Ampliar a cobertura do Programa Criança Feliz e do SCFV."),
+        ("Infraestrutura Urbana", "Priorizar investimentos em espaços públicos amigáveis à Primeira Infância (Urban95)."),
+        ("Monitoramento Contínuo", "Manter a atualização anual deste painel."),
     ]
     for titulo_rec, texto_rec in recs:
         story.append(Paragraph(f"• {titulo_rec}", destaque))
@@ -385,7 +387,7 @@ with col_kpi3:
 
 
 # ==========================================
-# EVOLUCAO E PROJECAO (COM DIVISORIA)
+# EVOLUCAO E PROJECAO
 # ==========================================
 st.markdown('<div class="secao-titulo">Evolução Histórica e Projeção (2014-2030)</div>', unsafe_allow_html=True)
 
@@ -402,7 +404,6 @@ fig_hist.add_trace(go.Scatter(x=anos_projecao, y=valores_otimista, mode='lines',
 fig_hist.add_trace(go.Scatter(x=anos_projecao, y=valores_pessimista, mode='lines', name='Cenário Pessimista',
     line=dict(color=CORAL, width=1.5, dash='dot'), hovertemplate='<b>%{x}</b><br>Pessimista: %{y:,.0f}<extra></extra>'))
 
-# DIVISORIA DA PROJECAO (linha vertical em 2025.5)
 fig_hist.add_vline(x=2025.5, line_width=2, line_dash="solid", line_color="#999999",
     annotation_text="Início da Projeção", annotation_position="top",
     annotation_font=dict(size=12, color=GRAFITE, family="Arial"))
@@ -418,7 +419,7 @@ fig_hist.update_layout(
     xaxis=dict(showgrid=False, linecolor='#DDDDDD', dtick=1, tickfont=dict(color='#333333', size=13)),
     yaxis=dict(gridcolor='#EEEEEE', linecolor='#DDDDDD', tickfont=dict(color='#333333', size=13))
 )
-st.plotly_chart(fig_hist, use_container_width=True)
+st.plotly_chart(fig_hist, use_container_width=True, config=PLOTLY_CONFIG)
 
 st.markdown(f'<div class="info-projecao"><strong>Nota metodológica:</strong> A projeção foi calculada por <strong>regressão linear</strong> com base nos dados históricos de {anos_hist[0]} a {anos_hist[-1]}. Os cenários otimista e pessimista representam o intervalo de confiança de 95%.</div>', unsafe_allow_html=True)
 
@@ -465,7 +466,7 @@ st.markdown(html_tabela, unsafe_allow_html=True)
 
 
 # ==========================================
-# SEXO E PARTO (LABELS COLORIDOS)
+# SEXO E PARTO
 # ==========================================
 col1, col2 = st.columns(2)
 with col1:
@@ -482,7 +483,7 @@ with col1:
         showlegend=True,
         legend=dict(orientation="h", yanchor="bottom", y=-0.05, xanchor="center", x=0.5,
                     font=dict(size=13, color=GRAFITE)))
-    st.plotly_chart(fig_sexo, use_container_width=True)
+    st.plotly_chart(fig_sexo, use_container_width=True, config=PLOTLY_CONFIG)
 
 with col2:
     st.markdown('<div class="secao-titulo">Tipo de Parto</div>', unsafe_allow_html=True)
@@ -502,11 +503,11 @@ with col2:
         showlegend=True,
         legend=dict(orientation="h", yanchor="bottom", y=-0.05, xanchor="center", x=0.5,
                     font=dict(size=13, color=GRAFITE)))
-    st.plotly_chart(fig_parto, use_container_width=True)
+    st.plotly_chart(fig_parto, use_container_width=True, config=PLOTLY_CONFIG)
 
 
 # ==========================================
-# PRE-NATAL (LABELS ESCUROS)
+# PRE-NATAL
 # ==========================================
 st.markdown('<div class="secao-titulo">Cobertura de Pré-Natal</div>', unsafe_allow_html=True)
 ordem_prenatal = ['Nenhuma', 'de 1 a 3', 'de 4 a 6', '7 e mais', 'Ignorado']
@@ -532,11 +533,11 @@ fig_prenatal.update_layout(
     yaxis=dict(showgrid=False, linecolor='#DDDDDD', tickfont=dict(color='#333333', size=13)),
     showlegend=False
 )
-st.plotly_chart(fig_prenatal, use_container_width=True)
+st.plotly_chart(fig_prenatal, use_container_width=True, config=PLOTLY_CONFIG)
 
 
 # ==========================================
-# PESO AO NASCER (LABELS ESCUROS)
+# PESO AO NASCER
 # ==========================================
 st.markdown('<div class="secao-titulo">Distribuição de Peso ao Nascer</div>', unsafe_allow_html=True)
 ordem_peso = ['Menos de 500 g', '500 a 999g', '1000 a 1499g', '1500 a 2499g', '2500 a 2999g', '3000 a 3999g', '4000g e mais', 'Ign']
@@ -563,11 +564,11 @@ fig_peso.update_layout(
     yaxis=dict(showgrid=False, linecolor='#DDDDDD', tickfont=dict(color='#333333', size=13)),
     showlegend=False
 )
-st.plotly_chart(fig_peso, use_container_width=True)
+st.plotly_chart(fig_peso, use_container_width=True, config=PLOTLY_CONFIG)
 
 
 # ==========================================
-# FAIXA ETARIA DAS MAES (SEM LINHAS DE GRADE)
+# FAIXA ETARIA DAS MAES
 # ==========================================
 st.markdown('<div class="secao-titulo">Faixa Etária das Mães</div>', unsafe_allow_html=True)
 labels_idade = list(dados['por_idade_mae'].keys())
@@ -592,11 +593,11 @@ fig_idade.update_layout(
     showlegend=False,
     bargap=0.35
 )
-st.plotly_chart(fig_idade, use_container_width=True)
+st.plotly_chart(fig_idade, use_container_width=True, config=PLOTLY_CONFIG)
 
 
 # ==========================================
-# GESTACAO (LABELS ESCUROS)
+# GESTACAO
 # ==========================================
 if 'por_gestacao' in dados:
     st.markdown('<div class="secao-titulo">Duração da Gestação</div>', unsafe_allow_html=True)
@@ -621,7 +622,7 @@ if 'por_gestacao' in dados:
         yaxis=dict(showgrid=False, linecolor='#DDDDDD', tickfont=dict(color='#333333', size=13)),
         showlegend=False
     )
-    st.plotly_chart(fig_gest, use_container_width=True)
+    st.plotly_chart(fig_gest, use_container_width=True, config=PLOTLY_CONFIG)
 
 
 # ==========================================
