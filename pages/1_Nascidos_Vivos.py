@@ -2,6 +2,7 @@
 """
 Painel de Nascidos Vivos - Observatório da Primeira Infância de Caucaia
 Página interna: pages/1_Nascidos_Vivos.py
+Gráficos 100% estáticos.
 """
 
 import streamlit as st
@@ -57,11 +58,12 @@ CINZA = "#F5F6F8"
 GRAFITE = "#333333"
 BRANCO = "#FFFFFF"
 
-# Configuração global para todos os gráficos Plotly
+# ✅ CONFIGURAÇÃO GLOBAL — GRÁFICOS 100% ESTÁTICOS
 PLOTLY_CONFIG = {
-    'displayModeBar': False,
+    'staticPlot': True,           # desativa TODA interatividade (hover, zoom, pan)
+    'displayModeBar': False,      # esconde a barra de ferramentas
     'displaylogo': False,
-    'staticPlot': False,
+    'scrollZoom': False,
 }
 
 
@@ -194,7 +196,6 @@ def gerar_relatorio_pdf():
     corpo = ParagraphStyle('Corpo', parent=styles['BodyText'], fontSize=11, textColor=cor_grafite, spaceAfter=8, alignment=TA_JUSTIFY, leading=15)
     destaque = ParagraphStyle('Destaque', parent=styles['BodyText'], fontSize=12, textColor=cor_azul, spaceAfter=8, fontName='Helvetica-Bold')
 
-    # ---------- CAPA ----------
     story.append(Paragraph("PREFEITURA MUNICIPAL DE CAUCAIA", titulo))
     story.append(Paragraph("Observatório da Primeira Infância", ParagraphStyle('Sub', parent=titulo, fontSize=14, spaceAfter=8)))
     story.append(Spacer(1, 0.5*cm))
@@ -203,7 +204,6 @@ def gerar_relatorio_pdf():
     story.append(Paragraph(f"Gerado em: {datetime.now().strftime('%d/%m/%Y às %H:%M')}", ParagraphStyle('Data', parent=corpo, alignment=TA_CENTER, fontSize=10, textColor=colors.gray)))
     story.append(Spacer(1, 1*cm))
 
-    # ---------- 1. SUMÁRIO EXECUTIVO ----------
     story.append(Paragraph("1. SUMÁRIO EXECUTIVO", subtitulo))
     tendencia_txt = "crescimento" if coef[0] > 0 else "redução"
     texto_executivo = f"""
@@ -216,13 +216,11 @@ def gerar_relatorio_pdf():
     com projeção de <b>{fmt(total_2026_2030)} nascimentos</b> para o quinquênio 2026-2030.
     <br/><br/>
     O peso médio ao nascer foi de <b>{dados['estatisticas']['peso_medio_g']:.0f} g</b> e a idade média das mães 
-    foi de <b>{dados['estatisticas']['idade_media_mae']} anos</b>. Os dados aqui apresentados servem como base 
-    técnica para o planejamento de políticas públicas voltadas à Primeira Infância.
+    foi de <b>{dados['estatisticas']['idade_media_mae']} anos</b>.
     """
     story.append(Paragraph(texto_executivo, corpo))
     story.append(Spacer(1, 0.5*cm))
 
-    # ---------- 2. INDICADORES PRINCIPAIS ----------
     story.append(Paragraph("2. INDICADORES PRINCIPAIS", subtitulo))
     dados_tabela = [
         ['Indicador', 'Valor'],
@@ -253,7 +251,6 @@ def gerar_relatorio_pdf():
     ]))
     story.append(tabela)
 
-    # ---------- 3. PROJEÇÃO ----------
     story.append(PageBreak())
     story.append(Paragraph("3. PROJEÇÃO PARA 2026-2030", subtitulo))
     texto_projecao = f"""
@@ -282,7 +279,6 @@ def gerar_relatorio_pdf():
     ]))
     story.append(tabela_proj)
 
-    # ---------- 4. ANÁLISE MATERNO-INFANTIL ----------
     story.append(PageBreak())
     story.append(Paragraph("4. ANÁLISE DE SAÚDE MATERNO-INFANTIL", subtitulo))
 
@@ -290,8 +286,7 @@ def gerar_relatorio_pdf():
     texto_prenatal = f"""
     Das <b>{fmt(total_prenatal)}</b> mães registradas, <b>{fmt(pren_adequado)}</b> (<b>{perc_adequado:.1f}%</b>) 
     realizaram <b>7 ou mais consultas</b> de pré-natal. No entanto, <b>{fmt(pren_nenhum)}</b> mães 
-    (<b>{perc_nenhum:.1f}%</b>) <b>não realizaram nenhuma consulta</b>, o que constitui um ponto de atenção 
-    para a gestão municipal.
+    (<b>{perc_nenhum:.1f}%</b>) <b>não realizaram nenhuma consulta</b>.
     """
     story.append(Paragraph(texto_prenatal, corpo))
     story.append(Spacer(1, 0.3*cm))
@@ -299,10 +294,7 @@ def gerar_relatorio_pdf():
     story.append(Paragraph("4.2 Tipo de Parto", destaque))
     texto_parto = f"""
     Do total de partos, <b>{fmt(cesariana)}</b> (<b>{perc_ces:.1f}%</b>) foram cesarianas e <b>{fmt(vaginal)}</b> 
-    (<b>{perc_vag:.1f}%</b>) foram partos vaginais.
-    <br/><br/>
-    <b>Alerta técnico:</b> a OMS recomenda taxa de cesarianas entre 10% e 15%. A taxa observada de 
-    <b>{perc_ces:.1f}%</b> está significativamente acima do recomendado.
+    (<b>{perc_vag:.1f}%</b>) foram partos vaginais. A OMS recomenda taxa de cesarianas entre 10% e 15%.
     """
     story.append(Paragraph(texto_parto, corpo))
     story.append(Spacer(1, 0.3*cm))
@@ -311,30 +303,26 @@ def gerar_relatorio_pdf():
     texto_peso = f"""
     A média de peso ao nascer foi de <b>{dados['estatisticas']['peso_medio_g']:.0f} g</b>. Foram registrados 
     <b>{fmt(baixo_peso)}</b> bebês com <b>peso inferior a 2.500 g</b> (<b>{perc_baixo_peso:.1f}%</b>).
-    <br/><br/>
-    Peso mínimo: <b>{dados['estatisticas']['peso_min_g']} g</b>. Peso máximo: <b>{dados['estatisticas']['peso_max_g']} g</b>.
     """
     story.append(Paragraph(texto_peso, corpo))
 
-    # ---------- 5. RECOMENDAÇÕES ----------
     story.append(PageBreak())
     story.append(Paragraph("5. RECOMENDAÇÕES PARA A GESTÃO MUNICIPAL", subtitulo))
-    story.append(Paragraph("Com base na análise técnica dos dados, apresentam-se as seguintes recomendações estratégicas:", corpo))
+    story.append(Paragraph("Com base na análise técnica dos dados, apresentam-se as seguintes recomendações:", corpo))
     story.append(Spacer(1, 0.3*cm))
 
     recs = [
-        ("Saúde Materno-Infantil", "Ampliar a cobertura de pré-natal adequado, com meta de reduzir os casos de mães sem nenhuma consulta."),
-        ("Redução de Cesarianas Desnecessárias", "Implementar protocolos de classificação de risco obstétrico e promover o parto humanizado."),
-        ("Educação Infantil", "Dimensionar a oferta de vagas em creches e pré-escolas para os próximos 5 anos."),
+        ("Saúde Materno-Infantil", "Ampliar a cobertura de pré-natal adequado."),
+        ("Redução de Cesarianas Desnecessárias", "Implementar protocolos de classificação de risco obstétrico."),
+        ("Educação Infantil", "Dimensionar a oferta de vagas em creches e pré-escolas."),
         ("Primeira Infância e Assistência Social", "Ampliar a cobertura do Programa Criança Feliz e do SCFV."),
-        ("Infraestrutura Urbana", "Priorizar investimentos em espaços públicos amigáveis à Primeira Infância (Urban95)."),
+        ("Infraestrutura Urbana", "Priorizar investimentos em espaços públicos amigáveis à Primeira Infância."),
         ("Monitoramento Contínuo", "Manter a atualização anual deste painel."),
     ]
     for titulo_rec, texto_rec in recs:
         story.append(Paragraph(f"• {titulo_rec}", destaque))
         story.append(Paragraph(texto_rec, ParagraphStyle('Rec', parent=corpo, leftIndent=0.8*cm, spaceAfter=10)))
 
-    # ---------- ASSINATURA ----------
     story.append(Spacer(1, 1*cm))
     story.append(Paragraph("_________________________________", ParagraphStyle('Linha', parent=corpo, alignment=TA_CENTER)))
     story.append(Paragraph("<b>Observatório da Primeira Infância de Caucaia</b>", ParagraphStyle('Ass', parent=corpo, alignment=TA_CENTER, fontSize=12, textColor=cor_azul)))
@@ -393,16 +381,14 @@ st.markdown('<div class="secao-titulo">Evolução Histórica e Projeção (2014-
 
 fig_hist = go.Figure()
 fig_hist.add_trace(go.Scatter(x=anos_hist, y=valores_hist, mode='lines+markers', name='Histórico',
-    line=dict(color=AZUL, width=3), marker=dict(size=10, color=AZUL, line=dict(color=BRANCO, width=2)),
-    hovertemplate='<b>%{x}</b><br>%{y:,.0f} nascimentos<extra></extra>'))
+    line=dict(color=AZUL, width=3), marker=dict(size=10, color=AZUL, line=dict(color=BRANCO, width=2))))
 fig_hist.add_trace(go.Scatter(x=anos_projecao, y=valores_projetados, mode='lines+markers', name='Projeção Realista',
     line=dict(color=AMARELO, width=3, dash='dash'),
-    marker=dict(size=10, color=AMARELO, symbol='diamond', line=dict(color=BRANCO, width=2)),
-    hovertemplate='<b>%{x}</b><br>Projeção: %{y:,.0f}<extra></extra>'))
+    marker=dict(size=10, color=AMARELO, symbol='diamond', line=dict(color=BRANCO, width=2))))
 fig_hist.add_trace(go.Scatter(x=anos_projecao, y=valores_otimista, mode='lines', name='Cenário Otimista',
-    line=dict(color=VERDE, width=1.5, dash='dot'), hovertemplate='<b>%{x}</b><br>Otimista: %{y:,.0f}<extra></extra>'))
+    line=dict(color=VERDE, width=1.5, dash='dot')))
 fig_hist.add_trace(go.Scatter(x=anos_projecao, y=valores_pessimista, mode='lines', name='Cenário Pessimista',
-    line=dict(color=CORAL, width=1.5, dash='dot'), hovertemplate='<b>%{x}</b><br>Pessimista: %{y:,.0f}<extra></extra>'))
+    line=dict(color=CORAL, width=1.5, dash='dot')))
 
 fig_hist.add_vline(x=2025.5, line_width=2, line_dash="solid", line_color="#999999",
     annotation_text="Início da Projeção", annotation_position="top",
@@ -520,8 +506,7 @@ fig_prenatal = go.Figure(data=[go.Bar(
     marker=dict(color=AZUL, line=dict(color=BRANCO, width=1)),
     text=[fmt(v) for v in dados_prenatal_ordenado.values()],
     textposition='outside',
-    textfont=dict(size=13, color=GRAFITE, family="Arial"),
-    hovertemplate='<b>%{y}</b><br>%{x:,.0f} mães<extra></extra>'
+    textfont=dict(size=13, color=GRAFITE, family="Arial")
 )])
 fig_prenatal.update_layout(
     height=320, margin=dict(l=20, r=100, t=20, b=40),
@@ -551,8 +536,7 @@ fig_peso = go.Figure(data=[go.Bar(
     marker=dict(color=[cores_peso.get(k, AZUL) for k in dados_peso_ordenado.keys()], line=dict(color=BRANCO, width=1)),
     text=[fmt(v) for v in dados_peso_ordenado.values()],
     textposition='outside',
-    textfont=dict(size=13, color=GRAFITE, family="Arial"),
-    hovertemplate='<b>%{y}</b><br>%{x:,.0f} bebês<extra></extra>'
+    textfont=dict(size=13, color=GRAFITE, family="Arial")
 )])
 fig_peso.update_layout(
     height=380, margin=dict(l=20, r=100, t=20, b=40),
@@ -579,8 +563,7 @@ fig_idade = go.Figure(data=[go.Bar(
     marker=dict(color=AZUL, line=dict(color=BRANCO, width=1)),
     text=[fmt(v) for v in valores_idade],
     textposition='outside',
-    textfont=dict(size=13, color=GRAFITE, family="Arial"),
-    hovertemplate='<b>%{x}</b><br>%{y:,.0f} mães<extra></extra>'
+    textfont=dict(size=13, color=GRAFITE, family="Arial")
 )])
 fig_idade.update_layout(
     height=400, margin=dict(l=20, r=20, t=40, b=40),
@@ -609,8 +592,7 @@ if 'por_gestacao' in dados:
         marker=dict(color=VERDE, line=dict(color=BRANCO, width=1)),
         text=[fmt(v) for v in valores_gest],
         textposition='outside',
-        textfont=dict(size=13, color=GRAFITE, family="Arial"),
-        hovertemplate='<b>%{y}</b><br>%{x:,.0f} bebês<extra></extra>'
+        textfont=dict(size=13, color=GRAFITE, family="Arial")
     )])
     fig_gest.update_layout(
         height=350, margin=dict(l=20, r=100, t=20, b=40),
