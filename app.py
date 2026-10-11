@@ -2,7 +2,7 @@
 """
 app.py - Hub de Indicadores
 Página inicial do Streamlit, carregada dentro do iframe no WordPress.
-Cards clicáveis (o card inteiro é um link).
+Cards clicáveis — o card inteiro é um link que abre NO MESMO iframe.
 """
 
 import streamlit as st
@@ -66,11 +66,10 @@ st.markdown(f"""
 # ==========================================
 col1, col2, col3 = st.columns(3)
 
-# --- CARD 1: NASCIDOS VIVOS (CLICÁVEL) ---
+# --- CARD 1: NASCIDOS VIVOS (CLICÁVEL - abre no mesmo iframe) ---
 with col1:
     st.markdown(f"""
-    <a href="https://painel-nascidos-caucaia.streamlit.app/Nascidos_Vivos" 
-       target="_blank"
+    <a href="/Nascidos_Vivos" 
        style="text-decoration: none; display: block;">
         <div style="background: white; border-left: 4px solid {AZUL}; padding: 24px; 
                     border-radius: 8px; box-shadow: 0 4px 12px rgba(31, 58, 110, 0.1); 
