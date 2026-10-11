@@ -2,7 +2,7 @@
 """
 app.py - Hub de Indicadores
 Página inicial do Streamlit, carregada dentro do iframe no WordPress.
-Card de Nascidos Vivos com botão invisível sobreposto (card inteiro clicável).
+Card de Nascidos Vivos 100% clicável.
 """
 
 import streamlit as st
@@ -66,22 +66,19 @@ st.markdown(f"""
 # ==========================================
 col1, col2, col3 = st.columns(3)
 
-# --- CARD 1: NASCIDOS VIVOS (CARD INTEIRO CLICÁVEL) ---
+# --- CARD 1: NASCIDOS VIVOS (100% CLICÁVEL) ---
 with col1:
-    # Botão invisível sobreposto ao card (fica por baixo do card visual)
-    if st.button("👶", key="btn_nascidos_vivos", use_container_width=True):
-        st.switch_page("pages/1_Nascidos_Vivos.py")
-    
+    # CSS específico do card
     st.markdown(f"""
     <style>
-        /* Container relativo para o card */
-        .card-nascidos-wrapper {{
+        /* Wrapper do card: relative, para posicionar o botao invisivel por cima */
+        .card-hub-wrapper {{
             position: relative;
-            margin-top: -120px;
-            pointer-events: none;
-            height: 250px;
+            height: 260px;
+            margin-bottom: 0;
         }}
-        .card-nascidos-content {{
+        /* Conteudo visual do card */
+        .card-hub-content {{
             background: white;
             border-left: 4px solid {AZUL};
             padding: 24px;
@@ -92,30 +89,48 @@ with col1:
             flex-direction: column;
             justify-content: space-between;
             transition: all 0.25s;
+            box-sizing: border-box;
         }}
-        /* O botao invisivel que cobre o card fica em cima */
-        div.stButton > button[key="btn_nascidos_vivos"] {{
-            opacity: 0 !important;
+        /* Hover: o card levanta */
+        .card-hub-wrapper:hover .card-hub-content {{
+            transform: translateY(-6px);
+            box-shadow: 0 10px 24px rgba(31, 58, 110, 0.25);
+        }}
+        /* O botao invisivel que cobre 100% do card */
+        .btn-card-invisivel button {{
             position: absolute !important;
             top: 0 !important;
             left: 0 !important;
             width: 100% !important;
-            height: 260px !important;
-            z-index: 100 !important;
-            cursor: pointer !important;
+            height: 100% !important;
+            opacity: 0 !important;
             background: transparent !important;
             border: none !important;
             box-shadow: none !important;
+            cursor: pointer !important;
+            padding: 0 !important;
+            margin: 0 !important;
             color: transparent !important;
+            z-index: 10 !important;
         }}
-        /* Mostra o card visual por baixo */
-        .card-nascidos-wrapper:hover .card-nascidos-content {{
-            transform: translateY(-6px);
-            box-shadow: 0 10px 24px rgba(31, 58, 110, 0.25);
+        /* Remove qualquer margem extra do botao */
+        .btn-card-invisivel {{
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            pointer-events: none;
+        }}
+        /* Habilita pointer-events apenas no botao */
+        .btn-card-invisivel button {{
+            pointer-events: auto !important;
         }}
     </style>
-    <div class="card-nascidos-wrapper">
-        <div class="card-nascidos-content">
+    <div class="card-hub-wrapper">
+        <div class="card-hub-content">
             <div>
                 <div style="font-size: 38px; margin-bottom: 12px;">👶</div>
                 <h3 style="color: {AZUL}; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
@@ -140,12 +155,18 @@ with col1:
     </div>
     """, unsafe_allow_html=True)
 
+    # Wrapper do botao invisivel - posicionado exatamente sobre o card
+    st.markdown('<div class="btn-card-invisivel">', unsafe_allow_html=True)
+    if st.button("👶", key="btn_card_nascidos", use_container_width=True):
+        st.switch_page("pages/1_Nascidos_Vivos.py")
+    st.markdown('</div>', unsafe_allow_html=True)
+
 # --- CARD 2: MORTALIDADE INFANTIL ---
 with col2:
     st.markdown(f"""
     <div style="background: white; border-left: 4px solid {CORAL}; padding: 24px; 
                 border-radius: 8px; box-shadow: 0 4px 12px rgba(232, 155, 125, 0.1); 
-                height: 250px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
+                height: 260px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
         <div>
             <div style="font-size: 38px; margin-bottom: 12px;">📉</div>
             <h3 style="color: {AZUL}; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
@@ -171,7 +192,7 @@ with col3:
     st.markdown(f"""
     <div style="background: white; border-left: 4px solid {VERDE}; padding: 24px; 
                 border-radius: 8px; box-shadow: 0 4px 12px rgba(93, 181, 168, 0.1); 
-                height: 250px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
+                height: 260px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
         <div>
             <div style="font-size: 38px; margin-bottom: 12px;">🎓</div>
             <h3 style="color: {AZUL}; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
@@ -201,7 +222,7 @@ with col1:
     st.markdown(f"""
     <div style="background: white; border-left: 4px solid {AMARELO}; padding: 24px; 
                 border-radius: 8px; box-shadow: 0 4px 12px rgba(245, 185, 58, 0.1); 
-                height: 250px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
+                height: 260px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
         <div>
             <div style="font-size: 38px; margin-bottom: 12px;">💉</div>
             <h3 style="color: {AZUL}; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
@@ -225,7 +246,7 @@ with col2:
     st.markdown(f"""
     <div style="background: white; border-left: 4px solid {AZUL_CLARO}; padding: 24px; 
                 border-radius: 8px; box-shadow: 0 4px 12px rgba(168, 200, 232, 0.1); 
-                height: 250px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
+                height: 260px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
         <div>
             <div style="font-size: 38px; margin-bottom: 12px;">🍼</div>
             <h3 style="color: {AZUL}; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
@@ -249,7 +270,7 @@ with col3:
     st.markdown(f"""
     <div style="background: white; border-left: 4px solid #C8A8E8; padding: 24px; 
                 border-radius: 8px; box-shadow: 0 4px 12px rgba(200, 168, 232, 0.1); 
-                height: 250px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
+                height: 260px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
         <div>
             <div style="font-size: 38px; margin-bottom: 12px;">👨‍👩‍👧</div>
             <h3 style="color: {AZUL}; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
