@@ -2,7 +2,7 @@
 """
 app.py - Hub de Indicadores
 Página inicial do Streamlit, carregada dentro do iframe no WordPress.
-Mostra os cards de todos os painéis disponíveis.
+Cards clicáveis (o card inteiro é um link).
 """
 
 import streamlit as st
@@ -66,37 +66,42 @@ st.markdown(f"""
 # ==========================================
 col1, col2, col3 = st.columns(3)
 
-# --- CARD 1: NASCIDOS VIVOS ---
+# --- CARD 1: NASCIDOS VIVOS (CLICÁVEL) ---
 with col1:
     st.markdown(f"""
-    <div style="background: white; border-left: 4px solid {AZUL}; padding: 24px; 
-                border-radius: 8px; box-shadow: 0 4px 12px rgba(31, 58, 110, 0.1); 
-                height: 200px; display: flex; flex-direction: column; justify-content: space-between;">
-        <div>
-            <div style="font-size: 38px; margin-bottom: 12px;">👶</div>
-            <h3 style="color: {AZUL}; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
-                Nascidos Vivos
-            </h3>
-            <p style="color: #666; font-size: 13px; margin: 0; line-height: 1.5;">
-                Total de nascimentos, perfil das mães, tipo de parto, peso ao nascer 
-                e projeções para os próximos anos.
-            </p>
+    <a href="https://painel-nascidos-caucaia.streamlit.app/Nascidos_Vivos" 
+       target="_blank"
+       style="text-decoration: none; display: block;">
+        <div style="background: white; border-left: 4px solid {AZUL}; padding: 24px; 
+                    border-radius: 8px; box-shadow: 0 4px 12px rgba(31, 58, 110, 0.1); 
+                    height: 250px; display: flex; flex-direction: column; justify-content: space-between;
+                    transition: all 0.25s; cursor: pointer;"
+             onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 10px 24px rgba(31, 58, 110, 0.25)';"
+             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(31, 58, 110, 0.1)';">
+            <div>
+                <div style="font-size: 38px; margin-bottom: 12px;">👶</div>
+                <h3 style="color: {AZUL}; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
+                    Nascidos Vivos →
+                </h3>
+                <p style="color: #666; font-size: 13px; margin: 0; line-height: 1.5;">
+                    Total de nascimentos, perfil das mães, tipo de parto, peso ao nascer 
+                    e projeções para os próximos anos.
+                </p>
+            </div>
+            <div style="margin-top: 12px;">
+                <span style="display: inline-block; background: {VERDE}; color: white; 
+                             padding: 4px 10px; border-radius: 12px; font-size: 10px; 
+                             font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                    ● Disponível
+                </span>
+                <span style="float: right; color: {AZUL}; font-size: 12px; font-weight: 600; 
+                             margin-top: 4px;">
+                    Clique para acessar
+                </span>
+            </div>
         </div>
-        <div style="margin-top: 12px;">
-            <span style="display: inline-block; background: {VERDE}; color: white; 
-                         padding: 4px 10px; border-radius: 12px; font-size: 10px; 
-                         font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                ● Disponível
-            </span>
-        </div>
-    </div>
+    </a>
     """, unsafe_allow_html=True)
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.page_link(
-        "pages/1_Nascidos_Vivos.py",
-        label="📊 Acessar Painel →",
-        use_container_width=True
-    )
 
 # --- CARD 2: MORTALIDADE INFANTIL ---
 with col2:
