@@ -2,10 +2,9 @@
 """
 Painel de Nascidos Vivos - Observatório da Primeira Infância de Caucaia
 Página interna: pages/1_Nascidos_Vivos.py
-Versão sem emojis + autenticação + PDF com 5 páginas.
+Versão SEM autenticação (temporária) + PDF com 5 páginas.
 """
 
-import hmac
 import streamlit as st
 import json
 from pathlib import Path
@@ -53,27 +52,6 @@ st.markdown("""
     .stApp { background-color: #FFFFFF; }
     .modebar { display: none !important; }
     .modebar-container { display: none !important; }
-
-    div[data-testid="stForm"] {
-        border: 1px solid #E0E0E0;
-        border-radius: 12px;
-        padding: 32px;
-        box-shadow: 0 4px 20px rgba(31, 58, 110, 0.08);
-        background: #FFFFFF;
-    }
-    div[data-testid="stForm"] button {
-        background-color: #1F3A6E !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 8px !important;
-        padding: 12px 20px !important;
-        font-weight: 700 !important;
-        font-size: 15px !important;
-        margin-top: 8px !important;
-    }
-    div[data-testid="stForm"] button:hover {
-        background-color: #16305A !important;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -89,90 +67,6 @@ AZUL_CLARO = "#A8C8E8"
 CINZA = "#F5F6F8"
 GRAFITE = "#333333"
 BRANCO = "#FFFFFF"
-
-
-# ==========================================
-# AUTENTICAÇÃO
-# ==========================================
-def check_password():
-    def login_form():
-        st.markdown("""
-        <div style="text-align: center; padding: 40px 20px 20px 20px;">
-            <h1 style="color: #1F3A6E; font-size: 28px; margin: 0 0 8px 0; font-weight: 700;">
-                Acesso Restrito
-            </h1>
-            <p style="color: #666; font-size: 15px; margin: 0; line-height: 1.6;">
-                Este painel contém <strong>dados sensíveis</strong> da Primeira Infância.<br>
-                Informe suas credenciais para continuar.
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
-
-        with st.form("Credentials"):
-            col_espaco1, col_form, col_espaco2 = st.columns([1, 1.5, 1])
-            with col_form:
-                st.text_input("Usuário", key="username", placeholder="Digite seu usuário")
-                st.text_input("Senha", type="password", key="password", placeholder="Digite sua senha")
-                st.form_submit_button("Entrar", on_click=password_entered, use_container_width=True)
-
-        st.markdown("""
-        <div style="text-align: center; padding: 20px; margin-top: 20px; color: #888; font-size: 12px;">
-            <p style="margin: 0;">
-                Em caso de problemas de acesso, entre em contato com o<br>
-                <strong>Observatório da Primeira Infância de Caucaia</strong>
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
-
-    def password_entered():
-        try:
-            username = st.session_state.get("username", "").strip()
-            password = st.session_state.get("password", "")
-
-            if username in st.secrets["users"] and hmac.compare_digest(
-                password, st.secrets["users"][username]
-            ):
-                st.session_state["password_correct"] = True
-                st.session_state["logged_user"] = username
-                if "password" in st.session_state:
-                    del st.session_state["password"]
-                if "username" in st.session_state:
-                    del st.session_state["username"]
-            else:
-                st.session_state["password_correct"] = False
-        except Exception:
-            st.session_state["password_correct"] = False
-
-    if st.session_state.get("password_correct", False):
-        return True
-
-    login_form()
-
-    if "password_correct" in st.session_state and not st.session_state["password_correct"]:
-        st.error("Usuário ou senha incorretos. Verifique e tente novamente.")
-
-    return False
-
-
-if not check_password():
-    st.stop()
-
-# ==========================================
-# BARRA DO USUÁRIO LOGADO
-# ==========================================
-usuario_logado = st.session_state.get("logged_user", "")
-col_user, col_sair = st.columns([5, 1])
-with col_user:
-    st.markdown(f"""
-    <div style="text-align: right; color: #666; font-size: 12px; padding-top: 8px;">
-        Logado como: <strong style="color: {AZUL};">{usuario_logado}</strong>
-    </div>
-    """, unsafe_allow_html=True)
-with col_sair:
-    if st.button("Sair", key="btn_logout", use_container_width=True):
-        st.session_state["password_correct"] = False
-        st.session_state["logged_user"] = ""
-        st.rerun()
 
 # ==========================================
 # CONFIGURAÇÃO DE GRÁFICOS
@@ -349,7 +243,7 @@ def gerar_relatorio_pdf():
     corpo = ParagraphStyle('Corpo', parent=styles['BodyText'], fontSize=11, textColor=cor_grafite, spaceAfter=8, alignment=TA_JUSTIFY, leading=15)
     destaque = ParagraphStyle('Destaque', parent=styles['BodyText'], fontSize=12, textColor=cor_azul, spaceAfter=8, fontName='Helvetica-Bold')
 
-    # ---------- CAPA ----------
+    # CAPA
     story.append(Paragraph("PREFEITURA MUNICIPAL DE CAUCAIA", titulo))
     story.append(Paragraph("Observatório da Primeira Infância", ParagraphStyle('Sub', parent=titulo, fontSize=14, spaceAfter=8)))
     story.append(Spacer(1, 0.5*cm))
@@ -357,10 +251,9 @@ def gerar_relatorio_pdf():
     story.append(Paragraph(f"Período de análise: {anos_hist[0]} a {anos_hist[-1]}", ParagraphStyle('Periodo', parent=corpo, alignment=TA_CENTER, fontSize=12)))
     story.append(Paragraph(f"Projeção estendida até {ANO_FINAL_PMPI} (final do PMPI)", ParagraphStyle('Proj', parent=corpo, alignment=TA_CENTER, fontSize=11, textColor=colors.gray)))
     story.append(Paragraph(f"Gerado em: {datetime.now().strftime('%d/%m/%Y às %H:%M')}", ParagraphStyle('Data', parent=corpo, alignment=TA_CENTER, fontSize=10, textColor=colors.gray)))
-    story.append(Paragraph(f"Usuário: {usuario_logado}", ParagraphStyle('User', parent=corpo, alignment=TA_CENTER, fontSize=10, textColor=colors.gray)))
     story.append(Spacer(1, 1*cm))
 
-    # ---------- PÁGINA 1 ----------
+    # PÁGINA 1
     story.append(Paragraph("1. SUMÁRIO EXECUTIVO", subtitulo))
     tendencia_txt = "crescimento" if coef[0] > 0 else "redução"
     texto_executivo = f"""
@@ -374,11 +267,12 @@ def gerar_relatorio_pdf():
     que corresponde ao horizonte final do Plano Municipal pela Primeira Infância (PMPI).
     <br/><br/>
     O peso médio ao nascer foi de <b>{dados['estatisticas']['peso_medio_g']:.0f} g</b> e a idade média das mães 
-    foi de <b>{dados['estatisticas']['idade_media_mae']} anos</b>.
+    foi de <b>{dados['estatisticas']['idade_media_mae']} anos</b>. Os dados aqui apresentados servem como base 
+    técnica para o planejamento de políticas públicas voltadas à Primeira Infância.
     """
     story.append(Paragraph(texto_executivo, corpo))
 
-    # ---------- PÁGINA 2 ----------
+    # PÁGINA 2
     story.append(Paragraph("2. INDICADORES PRINCIPAIS", subtitulo))
     dados_tabela = [
         ['Indicador', 'Valor'],
@@ -409,7 +303,7 @@ def gerar_relatorio_pdf():
     ]))
     story.append(tabela)
 
-    # ---------- PÁGINA 3 ----------
+    # PÁGINA 3
     story.append(PageBreak())
     story.append(Paragraph(f"3. PROJEÇÃO PARA 2026-{ANO_FINAL_PMPI}", subtitulo))
     texto_projecao = f"""
@@ -438,7 +332,7 @@ def gerar_relatorio_pdf():
     ]))
     story.append(tabela_proj)
 
-    # ---------- PÁGINA 4 ----------
+    # PÁGINA 4
     story.append(PageBreak())
     story.append(Paragraph("4. ANÁLISE DE SAÚDE MATERNO-INFANTIL", subtitulo))
 
@@ -448,7 +342,7 @@ def gerar_relatorio_pdf():
     A recomendação do Ministério da Saúde é de <b>no mínimo 6 consultas</b>, sendo ideal <b>7 ou mais</b>.
     <br/><br/>
     Das <b>{fmt(total_prenatal)}</b> mães registradas, <b>{fmt(pren_adequado)}</b> 
-    (<b>{fmt_dec(perc_adequado)}%</b>) realizaram <b>7 ou mais consultas</b>. 
+    (<b>{fmt_dec(perc_adequado)}%</b>) realizaram <b>7 ou mais consultas</b>, atingindo a cobertura ideal. 
     No entanto, <b>{fmt(pren_nenhum)}</b> mães (<b>{fmt_dec(perc_nenhum)}%</b>) 
     <b>não realizaram nenhuma consulta</b> — ponto crítico de atenção.
     """
@@ -470,14 +364,14 @@ def gerar_relatorio_pdf():
     texto_peso = f"""
     A média de peso ao nascer foi de <b>{dados['estatisticas']['peso_medio_g']:.0f} g</b>. 
     Foram registrados <b>{fmt(baixo_peso)}</b> bebês com <b>peso inferior a 2.500 g</b> 
-    (<b>{fmt_dec(perc_baixo_peso)}%</b>).
+    (<b>{fmt_dec(perc_baixo_peso)}%</b>), indicador importante de risco.
     <br/><br/>
     Peso mínimo: <b>{dados['estatisticas']['peso_min_g']} g</b>. 
     Peso máximo: <b>{dados['estatisticas']['peso_max_g']} g</b>.
     """
     story.append(Paragraph(texto_peso, corpo))
 
-    # ---------- PÁGINA 5 ----------
+    # PÁGINA 5
     story.append(PageBreak())
     story.append(Paragraph("5. RECOMENDAÇÕES PARA A GESTÃO MUNICIPAL", subtitulo))
     story.append(Paragraph("Com base na análise técnica dos dados, apresentam-se as seguintes recomendações:", corpo))
@@ -547,7 +441,7 @@ with col_kpi3:
 
 
 # ==========================================
-# EVOLUÇÃO (SEM EMOJIS)
+# EVOLUÇÃO
 # ==========================================
 st.markdown(f'<div class="secao-titulo">Evolução Histórica e Projeção (2014-{ANO_FINAL_PMPI})</div>', unsafe_allow_html=True)
 st.markdown('<div class="secao-subtitulo">Passe o mouse sobre o gráfico para ver o número de nascidos em cada ano. A linha vertical marca o início da projeção.</div>', unsafe_allow_html=True)
