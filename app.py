@@ -7,18 +7,12 @@ Página inicial do Streamlit, carregada dentro do iframe no WordPress.
 import streamlit as st
 from datetime import datetime
 
-# ==========================================
-# CONFIGURACAO
-# ==========================================
 st.set_page_config(
     page_title="Indicadores - Observatório Caucaia",
     page_icon="https://www.caucaia.ce.gov.br/favicon.ico",
     layout="wide"
 )
 
-# ==========================================
-# CSS GERAL
-# ==========================================
 st.markdown("""
 <style>
     header[data-testid="stHeader"] { display: none !important; }
@@ -36,7 +30,6 @@ st.markdown("""
     iframe[title*="streamlit"] { display: none !important; }
     .stApp { background-color: #FFFFFF; }
 
-    /* Botao primary azul */
     div.stButton > button[kind="primary"] {
         background-color: #1F3A6E !important;
         color: white !important;
@@ -64,9 +57,6 @@ CORAL = "#E89B7D"
 AZUL_CLARO = "#A8C8E8"
 BRANCO = "#FFFFFF"
 
-# ==========================================
-# TÍTULO
-# ==========================================
 st.markdown(f"""
 <div style="padding: 8px 0 24px 0; margin-bottom: 8px;">
     <h2 style="color: {AZUL}; font-size: 28px; margin: 0 0 10px 0; font-weight: 700; line-height: 1.2;">
@@ -79,20 +69,16 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ==========================================
-# LINHA 1 DE CARDS
-# ==========================================
 col1, col2, col3 = st.columns(3)
 
-# --- CARD 1: NASCIDOS VIVOS ---
+# CARD 1: NASCIDOS VIVOS
 with col1:
     st.markdown(f"""
     <div style="background: white; border-left: 4px solid {AZUL}; padding: 24px; 
                 border-radius: 8px; box-shadow: 0 4px 12px rgba(31, 58, 110, 0.1); 
                 height: 250px; display: flex; flex-direction: column; justify-content: space-between;">
         <div>
-            <div style="font-size: 38px; margin-bottom: 12px;">👶</div>
-            <h3 style="color: {AZUL}; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
+            <h3 style="color: {AZUL}; margin: 0 0 12px 0; font-size: 18px; font-weight: 700;">
                 Nascidos Vivos
             </h3>
             <p style="color: #666; font-size: 13px; margin: 0; line-height: 1.5;">
@@ -104,24 +90,23 @@ with col1:
             <span style="display: inline-block; background: {VERDE}; color: white; 
                          padding: 4px 10px; border-radius: 12px; font-size: 10px; 
                          font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                ● Disponível
+                Disponível
             </span>
         </div>
     </div>
     """, unsafe_allow_html=True)
-    st.markdown("<div style='margin-top: 8px;'></div>", unsafe_allow_html=True)
-    if st.button("📊 Acessar Painel →", key="btn_card_nascidos", use_container_width=True, type="primary"):
+    st.markdown("<br>", unsafe_allow_html=True)
+    if st.button("Acessar Painel", key="btn_card_nascidos", use_container_width=True, type="primary"):
         st.switch_page("pages/1_Nascidos_Vivos.py")
 
-# --- CARD 2: MORTALIDADE INFANTIL ---
+# CARD 2: MORTALIDADE INFANTIL
 with col2:
     st.markdown(f"""
     <div style="background: white; border-left: 4px solid {CORAL}; padding: 24px; 
                 border-radius: 8px; box-shadow: 0 4px 12px rgba(232, 155, 125, 0.1); 
                 height: 250px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
         <div>
-            <div style="font-size: 38px; margin-bottom: 12px;">📉</div>
-            <h3 style="color: {AZUL}; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
+            <h3 style="color: {AZUL}; margin: 0 0 12px 0; font-size: 18px; font-weight: 700;">
                 Mortalidade Infantil
             </h3>
             <p style="color: #666; font-size: 13px; margin: 0; line-height: 1.5;">
@@ -133,21 +118,20 @@ with col2:
             <span style="display: inline-block; background: #CCCCCC; color: white; 
                          padding: 4px 10px; border-radius: 12px; font-size: 10px; 
                          font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                ○ Em breve
+                Em breve
             </span>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-# --- CARD 3: EDUCACAO INFANTIL ---
+# CARD 3: EDUCACAO INFANTIL
 with col3:
     st.markdown(f"""
     <div style="background: white; border-left: 4px solid {VERDE}; padding: 24px; 
                 border-radius: 8px; box-shadow: 0 4px 12px rgba(93, 181, 168, 0.1); 
                 height: 250px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
         <div>
-            <div style="font-size: 38px; margin-bottom: 12px;">🎓</div>
-            <h3 style="color: {AZUL}; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
+            <h3 style="color: {AZUL}; margin: 0 0 12px 0; font-size: 18px; font-weight: 700;">
                 Educação Infantil
             </h3>
             <p style="color: #666; font-size: 13px; margin: 0; line-height: 1.5;">
@@ -158,26 +142,23 @@ with col3:
             <span style="display: inline-block; background: #CCCCCC; color: white; 
                          padding: 4px 10px; border-radius: 12px; font-size: 10px; 
                          font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                ○ Em breve
+                Em breve
             </span>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-# ==========================================
-# LINHA 2 DE CARDS
-# ==========================================
 st.markdown("<br>", unsafe_allow_html=True)
 col1, col2, col3 = st.columns(3)
 
+# CARD 4: COBERTURA VACINAL
 with col1:
     st.markdown(f"""
     <div style="background: white; border-left: 4px solid {AMARELO}; padding: 24px; 
                 border-radius: 8px; box-shadow: 0 4px 12px rgba(245, 185, 58, 0.1); 
                 height: 250px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
         <div>
-            <div style="font-size: 38px; margin-bottom: 12px;">💉</div>
-            <h3 style="color: {AZUL}; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
+            <h3 style="color: {AZUL}; margin: 0 0 12px 0; font-size: 18px; font-weight: 700;">
                 Cobertura Vacinal
             </h3>
             <p style="color: #666; font-size: 13px; margin: 0; line-height: 1.5;">
@@ -188,20 +169,20 @@ with col1:
             <span style="display: inline-block; background: #CCCCCC; color: white; 
                          padding: 4px 10px; border-radius: 12px; font-size: 10px; 
                          font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                ○ Em breve
+                Em breve
             </span>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
+# CARD 5: ALEITAMENTO MATERNO
 with col2:
     st.markdown(f"""
     <div style="background: white; border-left: 4px solid {AZUL_CLARO}; padding: 24px; 
                 border-radius: 8px; box-shadow: 0 4px 12px rgba(168, 200, 232, 0.1); 
                 height: 250px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
         <div>
-            <div style="font-size: 38px; margin-bottom: 12px;">🍼</div>
-            <h3 style="color: {AZUL}; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
+            <h3 style="color: {AZUL}; margin: 0 0 12px 0; font-size: 18px; font-weight: 700;">
                 Aleitamento Materno
             </h3>
             <p style="color: #666; font-size: 13px; margin: 0; line-height: 1.5;">
@@ -212,20 +193,20 @@ with col2:
             <span style="display: inline-block; background: #CCCCCC; color: white; 
                          padding: 4px 10px; border-radius: 12px; font-size: 10px; 
                          font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                ○ Em breve
+                Em breve
             </span>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
+# CARD 6: ASSISTENCIA SOCIAL
 with col3:
     st.markdown(f"""
     <div style="background: white; border-left: 4px solid #C8A8E8; padding: 24px; 
                 border-radius: 8px; box-shadow: 0 4px 12px rgba(200, 168, 232, 0.1); 
                 height: 250px; display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
         <div>
-            <div style="font-size: 38px; margin-bottom: 12px;">👨‍👩‍👧</div>
-            <h3 style="color: {AZUL}; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
+            <h3 style="color: {AZUL}; margin: 0 0 12px 0; font-size: 18px; font-weight: 700;">
                 Assistência Social
             </h3>
             <p style="color: #666; font-size: 13px; margin: 0; line-height: 1.5;">
@@ -236,15 +217,12 @@ with col3:
             <span style="display: inline-block; background: #CCCCCC; color: white; 
                          padding: 4px 10px; border-radius: 12px; font-size: 10px; 
                          font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                ○ Em breve
+                Em breve
             </span>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-# ==========================================
-# RODAPÉ
-# ==========================================
 st.markdown(f"""
 <div style="background: {AZUL}; color: white; padding: 20px 32px; border-radius: 8px; 
             text-align: center; font-size: 12px; margin-top: 48px; line-height: 1.6;">
